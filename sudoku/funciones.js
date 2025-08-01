@@ -68,6 +68,8 @@ let timeLeft;
 let timerInterval;
 let isSudokuSolvedOnce = false; // Variable para controlar si el Sudoku ya se resolvió una vez
 let solveButton; // Declarar solveButton globalmente
+let pistasUsadasPuzzle = 0;
+let totalPistasUsadas = 0;
 
 document.addEventListener("DOMContentLoaded", () => {
   scoreDisplay = document.getElementById("score");
@@ -75,6 +77,13 @@ document.addEventListener("DOMContentLoaded", () => {
   solveButton = document.querySelector('#solveButtonContainer button');
   
   const groupIrAdelanteDiv = document.getElementById("group-ir-adelante");
+
+  // Asegurar que el game-over-overlay esté oculto al iniciar
+  const gameOverOverlay = document.getElementById('game-over-overlay');
+  if (gameOverOverlay) {
+    gameOverOverlay.classList.add('oculto');
+    gameOverOverlay.style.display = 'none';
+  }
 
   renderBoard();
   renderDragZone();
@@ -94,10 +103,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Estado del juego
   gameMode = localStorage.getItem('gameMode') || 'score'; // Recupera el modo de juego
-  score = 400; // Valor inicial, se podría cargar de localStorage si se guarda
-  timeLeft = 30 * 60; // 30 minutos en segundos
-  let pistasUsadasPuzzle = 0;
-  let totalPistasUsadas = 0;
+  score = parseInt(localStorage.getItem('score')) || 400; // Recuperar score de localStorage
+  
+  // El timeLeft ahora se maneja a través del timer global
+  if (gameMode === 'time' && window.globalTimer) {
+    timeLeft = window.globalTimer.getTimeLeft();
+  } else {
+    timeLeft = 0; // En modo puntuación no necesitamos timeLeft
+  }
+  
+  // Inicializar variables de pistas (ya declaradas globalmente)
+  pistasUsadasPuzzle = 0;
+  totalPistasUsadas = parseInt(localStorage.getItem('totalPistasUsadas')) || 0;
   let puzzleActual = "sudoku"; // Siempre es el puzzle del sudoku aquí
 
   const puzzles = {
@@ -139,17 +156,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (modalPista) modalPista.style.display = "flex";
       if (feedbackPista) feedbackPista.textContent = ""; // Limpiar feedback anterior
 
-      let costoPuntos = 10;
-      let costoMinutos = 1;
+      let costoPuntos = 25;
+      let costoMinutos = 2;
       if (pistasUsadasPuzzle === 1) { // Segunda pista
-        costoPuntos = 20;
+        costoPuntos = 25;
         costoMinutos = 2;
       }
 
       if (pistaExplicacion) {
         let explanationText = "";
         if (gameMode === 'time') {
-          explanationText = `Durante esta prueba tendrás acceso a un máximo de 2 pistas extra y en cada una de ellas te daremos 3 figuras para resolver el panel. ¡Pero no será gratis! Se restará ${costoMinutos} minuto${costoMinutos > 1 ? 's' : ''} de tu valioso tiempo por la ${pistasUsadasPuzzle === 0 ? 'primera' : 'segunda'} pista.`;
+          explanationText = `Durante esta prueba tendrás acceso a un máximo de 2 pistas extra y en cada una de ellas te daremos 3 figuras para resolver el panel. ¡Pero no será gratis! Se restarán ${costoMinutos} minutos de tu valioso tiempo por la ${pistasUsadasPuzzle === 0 ? 'primera' : 'segunda'} pista.`;
         } else if (gameMode === 'score') {
           explanationText = `Durante esta prueba tendrás acceso a un máximo de 2 pistas extra en las cuales se incluirán en el tablero 3 figuras por pista usada, para ayudarte en la resolución del tablero. ¡Pero no será gratis! Se te restarán ${costoPuntos} puntos por la ${pistasUsadasPuzzle === 0 ? 'primera' : 'segunda'} pista.`;
         }
@@ -179,24 +196,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnDescartarPista) btnDescartarPista.style.display = "none";
 
     // Aplicar penalización
-    let penaltyScore = 10;
-    let penaltyTime = 60;
+    let penaltyScore = 25;
+    let penaltyTime = 120; // 2 minutos
     if (pistasUsadasPuzzle === 1) { // Segunda pista
-      penaltyScore = 20;
-      penaltyTime = 120;
+      penaltyScore = 25;
+      penaltyTime = 120; // 2 minutos
     }
 
     if (gameMode === 'score') {
       score -= penaltyScore;
+      localStorage.setItem('score', score); // Guardar en localStorage
       if (scoreDisplay) scoreDisplay.textContent = score;
     } else if (gameMode === 'time') {
-      timeLeft -= penaltyTime;
-      updateTimerDisplay();
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        alert("¡Se acabó el tiempo! Fin del juego.");
-        window.location.href = "../juego.php";
-        return;
+      // Usar el timer global para aplicar la penalización
+      if (window.globalTimer) {
+        window.globalTimer.applyPenalty(penaltyTime);
+        timeLeft = window.globalTimer.getTimeLeft(); // Actualizar timeLeft local
       }
     }
 
@@ -270,10 +285,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (pistasUsadasPuzzle >= 2) {
       if (btnPistaExtra) btnPistaExtra.disabled = true;
     }
+
+    // Cerrar el modal después de aplicar la pista (sin usar closeOverlayModal)
+    setTimeout(() => {
+      if (modalPista) {
+        modalPista.style.display = "none";
+        // NO llamar a closeOverlayModal para evitar interferencias con el timer
+      }
+    }, 2000); // Esperar 2 segundos para que el usuario vea el feedback
   }
 
   function descartarPista() {
     if (modalPista) modalPista.style.display = "none";
+    // NO usar closeOverlayModal para evitar interferencias
   }
 
   if (btnPistaExtra) {
@@ -294,42 +318,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (btnVolverAtras) {
     btnVolverAtras.addEventListener("click", () => {
-      history.back(); // Vuelve a la pantalla anterior en el historial del navegador
+      // Marcar que se está regresando desde sudoku para aplicar penalización
+      localStorage.setItem('regresoDesdeModulo', 'sudoku');
+      localStorage.setItem('tiempoRegreso', Date.now());
+      // Volver al juego principal - escena templo
+      window.location.href = "../juego.php#escena-templo";
     });
   }
 
   if (btnIrAdelanteButton) {
     btnIrAdelanteButton.addEventListener("click", () => {
-      const modalSudokuResuelto = document.getElementById('modal-sudoku-resuelto');
-      if (modalSudokuResuelto) {
-        openOverlayModal(modalSudokuResuelto);
-      }
+      // Ir a la siguiente escena - directamente al mapa con escena jungla incluida
+      window.location.href = "../mapa/mapa.php";
     });
   }
 
   // --- LÓGICA DEL TEMPORIZADOR ---
   function startTimer() {
-    const endTime = localStorage.getItem('endTime');
-    if (!endTime) {
-      // Handle case where timer wasn't started
-      return;
-    }
-
-    timerInterval = setInterval(() => {
-      const remainingTime = endTime - Date.now();
-      if (remainingTime <= 0) {
-        clearInterval(timerInterval);
-        document.getElementById('game-over-overlay').classList.remove('oculto');
-        document.getElementById('game-over-video').play();
-        return;
+    // Solo iniciar timer en modo tiempo
+    if (gameMode !== 'time') return;
+    
+    // El timer global maneja todo el timing
+    // Solo aseguramos que el timer global esté activo
+    if (window.globalTimer && !window.globalTimer.isActive()) {
+      const hasExistingTimer = localStorage.getItem('endTime');
+      if (hasExistingTimer) {
+        window.globalTimer.resumeTimer();
       }
-      timeLeft = Math.ceil(remainingTime / 1000);
+    }
+    
+    // Actualizar timeLeft local desde el timer global
+    if (window.globalTimer) {
+      timeLeft = window.globalTimer.getTimeLeft();
       updateTimerDisplay();
-    }, 1000);
+    }
   }
 
   document.getElementById('btn-restart').addEventListener('click', () => {
-    localStorage.removeItem('endTime');
+    if (window.globalTimer) {
+      window.globalTimer.clear();
+    }
     window.location.href = '../juego.php';
   });
 
@@ -358,7 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
       gameData.puntuacion_final = null;
       gameData.tiempo_restante_final = timeLeft;
     }
-fetch('/controller/guardarPartida.php', {
+fetch('../controller/guardarPartida.php', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(gameData),
@@ -443,7 +471,7 @@ fetch('/controller/guardarPartida.php', {
       if (!tablaRankingBody) return;
       tablaRankingBody.innerHTML = '';
 
-      fetch('/controller/obtenerRanking.php')
+      fetch('../controller/obtenerRanking.php')
           .then(response => response.json())
           .then(data => {
               if (data.success) {
@@ -497,10 +525,31 @@ fetch('/controller/guardarPartida.php', {
       cerrarModalRanking.addEventListener('click', () => closeOverlayModal(modalRanking));
   }
 
+  // --- BOTÓN CERRAR SESIÓN ---
+  const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
+  if (btnCerrarSesion) {
+    btnCerrarSesion.addEventListener('click', () => {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        // Limpiar datos del juego
+        localStorage.removeItem('gameMode');
+        localStorage.removeItem('score');
+        localStorage.removeItem('timeLeft');
+        localStorage.removeItem('endTime');
+        localStorage.removeItem('gameStartTime');
+        
+        // Redirigir a login
+        window.location.href = '../admin/login.php';
+      }
+    });
+  }
+
   window.addEventListener('click', (e) => {
       if (e.target === modalPerfil) closeOverlayModal(modalPerfil);
       if (e.target === modalRanking) closeOverlayModal(modalRanking);
-      if (e.target === modalPista) closeOverlayModal(modalPista);
+      if (e.target === modalPista) {
+        // Cierre simple para modal de pistas para evitar interferencias
+        modalPista.style.display = "none";
+      }
   });
 
   // Manejador global para soltar fuera de las celdas del sudoku
@@ -533,7 +582,6 @@ fetch('/controller/guardarPartida.php', {
   }
 
   // Lógica del botón Continuar del modal del pergamino
-  // Lógica del botón Continuar del modal del pergamino
   const btnAvanzarSudoku = document.getElementById('btn-avanzar-sudoku');
   if (btnAvanzarSudoku) {
     btnAvanzarSudoku.addEventListener('click', () => {
@@ -542,26 +590,13 @@ fetch('/controller/guardarPartida.php', {
     });
   }
 
-  // --- MODAL SUDOKU RESUELTO ---
-  const modalSudokuResuelto = document.getElementById('modal-sudoku-resuelto');
-  const cerrarModalSudokuResuelto = document.getElementById('cerrar-modal-sudoku-resuelto');
-  const btnContinuarSudoku = document.getElementById('btn-continuar-sudoku');
-
-  if (cerrarModalSudokuResuelto) {
-    cerrarModalSudokuResuelto.addEventListener('click', () => closeOverlayModal(modalSudokuResuelto));
-  }
-
-  if (btnContinuarSudoku) {
-    btnContinuarSudoku.addEventListener('click', () => {
-      window.location.href = "../juego.php#escena-jungla";
-    });
-  }
-
   window.addEventListener('click', (e) => {
       if (e.target === modalPerfil) closeOverlayModal(modalPerfil);
       if (e.target === modalRanking) closeOverlayModal(modalRanking);
-      if (e.target === modalPista) closeOverlayModal(modalPista);
-      if (e.target === modalSudokuResuelto) closeOverlayModal(modalSudokuResuelto);
+      if (e.target === modalPista) {
+        // Cierre simple para modal de pistas para evitar interferencias
+        modalPista.style.display = "none";
+      }
   });
 });
 
@@ -578,9 +613,10 @@ function renderBoard(boardState = initialPuzzle) {
       cell.ondragover = (e) => e.preventDefault();
       cell.ondrop = dropHandler;
 
-      // Eliminado: if (goldenCells.some(([r,c]) => r === i && c === j)) {
-      // Eliminado:   cell.classList.add("gold");
-      // Eliminado: }
+      // Marcar celdas doradas sin aplicar estilo visual hasta resolver
+      if (goldenCells.some(([r,c]) => r === i && c === j)) {
+        cell.classList.add("golden-cell"); // Clase para identificar, sin estilo visual
+      }
 
       // Añadir clase para celdas con pistas
       if (hintedCells.some(hc => hc.row === i && hc.col === j)) {
@@ -718,26 +754,33 @@ function isFigure(val) {
 }
 
 function isValidPlacement(board, row, col, value) {
-  // Check row
+  // Convertir value a string para comparación consistente
+  value = value.toString();
+  
+  // Verificar fila - no debe haber el mismo valor en la fila
   for (let c = 0; c < 6; c++) {
-    if (board[row][c] == value) {
+    if (c !== col && board[row][c] && board[row][c].toString() === value) {
       return false;
     }
   }
 
-  // Check column
+  // Verificar columna - no debe haber el mismo valor en la columna
   for (let r = 0; r < 6; r++) {
-    if (board[r][col] == value) {
+    if (r !== row && board[r][col] && board[r][col].toString() === value) {
       return false;
     }
   }
 
-  // Check 2x3 subgrid
+  // Verificar subcuadrícula 2x3 - no debe haber el mismo valor en el bloque
   const startRow = Math.floor(row / 2) * 2;
   const startCol = Math.floor(col / 3) * 3;
   for (let r = 0; r < 2; r++) {
     for (let c = 0; c < 3; c++) {
-      if (board[startRow + r][startCol + c] == value) {
+      const checkRow = startRow + r;
+      const checkCol = startCol + c;
+      if ((checkRow !== row || checkCol !== col) && 
+          board[checkRow][checkCol] && 
+          board[checkRow][checkCol].toString() === value) {
         return false;
       }
     }
@@ -748,52 +791,70 @@ function isValidPlacement(board, row, col, value) {
 
 function isSudokuSolved() {
   const table = document.getElementById("sudoku");
-  let solved = true;
+  
+  // Verificar que todas las celdas estén llenas
+  for (let i = 0; i < 6; i++) {
+    for (let j = 0; j < 6; j++) {
+      const cellValue = table.rows[i].cells[j].dataset.value;
+      if (!cellValue || cellValue === "") {
+        return false; // Hay celdas vacías
+      }
+    }
+  }
 
-  // Check rows, columns, and 2x3 subgrids
+  // Verificar filas - cada fila debe tener valores únicos del 1 al 6
   for (let i = 0; i < 6; i++) {
     let rowValues = new Set();
-    let colValues = new Set();
     for (let j = 0; j < 6; j++) {
-      let cellValueRow = table.rows[i].cells[j].dataset.value;
-      let cellValueCol = table.rows[j].cells[i].dataset.value;
-
-      if (!cellValueRow || rowValues.has(cellValueRow)) {
-        solved = false;
-        break;
+      let cellValue = table.rows[i].cells[j].dataset.value;
+      if (!cellValue || rowValues.has(cellValue)) {
+        return false;
       }
-      rowValues.add(cellValueRow);
-
-      if (!cellValueCol || colValues.has(cellValueCol)) {
-        solved = false;
-        break;
-      }
-      colValues.add(cellValueCol);
+      rowValues.add(cellValue);
     }
-    if (!solved) break;
+    // Verificar que tenga exactamente los 6 valores únicos
+    if (rowValues.size !== 6) {
+      return false;
+    }
   }
 
-  if (solved) {
-    for (let blockRow = 0; blockRow < 6; blockRow += 2) {
-      for (let blockCol = 0; blockCol < 6; blockCol += 3) {
-        let blockValues = new Set();
-        for (let i = 0; i < 2; i++) {
-          for (let j = 0; j < 3; j++) {
-            let cellValue = table.rows[blockRow + i].cells[blockCol + j].dataset.value;
-            if (!cellValue || blockValues.has(cellValue)) {
-              solved = false;
-              break;
-            }
-            blockValues.add(cellValue);
+  // Verificar columnas - cada columna debe tener valores únicos del 1 al 6
+  for (let j = 0; j < 6; j++) {
+    let colValues = new Set();
+    for (let i = 0; i < 6; i++) {
+      let cellValue = table.rows[i].cells[j].dataset.value;
+      if (!cellValue || colValues.has(cellValue)) {
+        return false;
+      }
+      colValues.add(cellValue);
+    }
+    // Verificar que tenga exactamente los 6 valores únicos
+    if (colValues.size !== 6) {
+      return false;
+    }
+  }
+
+  // Verificar subcuadrículas 2x3 - cada subcuadrícula debe tener valores únicos del 1 al 6
+  for (let blockRow = 0; blockRow < 6; blockRow += 2) {
+    for (let blockCol = 0; blockCol < 6; blockCol += 3) {
+      let blockValues = new Set();
+      for (let i = 0; i < 2; i++) {
+        for (let j = 0; j < 3; j++) {
+          let cellValue = table.rows[blockRow + i].cells[blockCol + j].dataset.value;
+          if (!cellValue || blockValues.has(cellValue)) {
+            return false;
           }
-          if (!solved) break;
+          blockValues.add(cellValue);
         }
-        if (!solved) break;
       }
-      if (!solved) break;
+      // Verificar que tenga exactamente los 6 valores únicos
+      if (blockValues.size !== 6) {
+        return false;
+      }
     }
   }
-  return solved;
+
+  return true; // Todo está correcto
 }
 
 function verificar() {
@@ -807,69 +868,94 @@ function verificar() {
     }
   }
 
-  // Revisión filas
+  // Verificar que todas las celdas estén llenas
   for (let i = 0; i < 6; i++) {
-    let fila = [];
     for (let j = 0; j < 6; j++) {
       let cell = table.rows[i].cells[j];
       let v = cell.dataset.value;
-      if (!v) {
+      if (!v || v === "") {
         correct = false;
         cell.classList.add("error");
-        continue;
-      }
-      if (fila.includes(v)) {
-        correct = false;
-        cell.classList.add("error");
-      } else {
-        fila.push(v);
       }
     }
   }
 
-  // Revisión columnas
+  // Verificar filas - no debe haber duplicados
+  for (let i = 0; i < 6; i++) {
+    let fila = [];
+    let cellsInRow = [];
+    for (let j = 0; j < 6; j++) {
+      let cell = table.rows[i].cells[j];
+      let v = cell.dataset.value;
+      cellsInRow.push(cell);
+      if (v && v !== "") {
+        if (fila.includes(v)) {
+          correct = false;
+          // Marcar todas las celdas con valor duplicado en esta fila
+          cellsInRow.forEach(c => {
+            if (c.dataset.value === v) {
+              c.classList.add("error");
+            }
+          });
+        } else {
+          fila.push(v);
+        }
+      }
+    }
+  }
+
+  // Verificar columnas - no debe haber duplicados
   for (let j = 0; j < 6; j++) {
     let col = [];
+    let cellsInCol = [];
     for (let i = 0; i < 6; i++) {
       let cell = table.rows[i].cells[j];
       let v = cell.dataset.value;
-      if (!v) {
-        correct = false;
-        cell.classList.add("error");
-        continue;
-      }
-      if (col.includes(v)) {
-        correct = false;
-        cell.classList.add("error");
-      } else {
-        col.push(v);
+      cellsInCol.push(cell);
+      if (v && v !== "") {
+        if (col.includes(v)) {
+          correct = false;
+          // Marcar todas las celdas con valor duplicado en esta columna
+          cellsInCol.forEach(c => {
+            if (c.dataset.value === v) {
+              c.classList.add("error");
+            }
+          });
+        } else {
+          col.push(v);
+        }
       }
     }
   }
 
-  // Revisión subcuadrículas 2x3
+  // Verificar subcuadrículas 2x3 - no debe haber duplicados
   for (let blockRow = 0; blockRow < 6; blockRow += 2) {
     for (let blockCol = 0; blockCol < 6; blockCol += 3) {
       let block = [];
+      let cellsInBlock = [];
       for (let i = 0; i < 2; i++) {
         for (let j = 0; j < 3; j++) {
           let cell = table.rows[blockRow + i].cells[blockCol + j];
           let v = cell.dataset.value;
-          if (!v) {
-            correct = false;
-            cell.classList.add("error");
-            continue;
-          }
-          if (block.includes(v)) {
-            correct = false;
-            cell.classList.add("error");
-          } else {
-            block.push(v);
+          cellsInBlock.push(cell);
+          if (v && v !== "") {
+            if (block.includes(v)) {
+              correct = false;
+              // Marcar todas las celdas con valor duplicado en este bloque
+              cellsInBlock.forEach(c => {
+                if (c.dataset.value === v) {
+                  c.classList.add("error");
+                }
+              });
+            } else {
+              block.push(v);
+            }
           }
         }
       }
     }
   }
+
   return correct;
 }
 
@@ -898,24 +984,18 @@ function handleSolveButton() {
       sendGameResult(); // Enviar resultado al resolver el Sudoku
       solveButton.textContent = "Continuar";
       isSudokuSolvedOnce = true; // Marcar que el Sudoku ha sido resuelto
-      const modalSudokuResuelto = document.getElementById('modal-sudoku-resuelto');
-      if (modalSudokuResuelto) {
-        openOverlayModal(modalSudokuResuelto);
-      }
     } else {
       resultadoDiv.textContent = "Hay errores. Revisa filas, columnas y cuadrantes.";
       playSound("audioError");
       if (gameMode === 'score') {
         score -= 10;
+        localStorage.setItem('score', score); // Guardar en localStorage
         if (scoreDisplay) scoreDisplay.textContent = score;
       } else if (gameMode === 'time') {
-        timeLeft -= 60; // Penalización de 1 minuto
-        updateTimerDisplay();
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          alert("¡Se acabó el tiempo! Fin del juego.");
-          window.location.href = "../juego.php";
-          return;
+        // Usar el timer global para aplicar penalización por respuesta incorrecta
+        if (window.globalTimer) {
+          window.globalTimer.applyPenalty(60); // 1 minuto
+          timeLeft = window.globalTimer.getTimeLeft(); // Actualizar timeLeft local
         }
       }
     }
@@ -931,10 +1011,8 @@ function handleSolveButton() {
     document.querySelector('.esquina-superior-derecha').style.display = 'none';
 
     // Mostrar el nuevo modal de Sudoku Resuelto
-    const modalSudokuResuelto = document.getElementById('modal-sudoku-resuelto');
-    if (modalSudokuResuelto) {
-      openOverlayModal(modalSudokuResuelto);
-    }
+    // Simplemente redirigir a la siguiente escena
+    window.location.href = "../juego.php#escena-jungla";
   }
 }
 
@@ -947,10 +1025,36 @@ function iniciarResolucion() {
   }
 }
 
+function animarGoldCells() {
+  const table = document.getElementById("sudoku");
+  
+  // Aplicar la animación de brillo dorado a las celdas golden
+  goldenCells.forEach(([row, col]) => {
+    const cell = table.rows[row].cells[col];
+    if (cell) {
+      cell.classList.remove("golden-cell"); // Remover clase de marcador
+      cell.classList.add("solved-gold"); // Agregar nueva clase con animación dorada
+    }
+  });
+  
+  // Reproducir sonido de éxito
+  playSound("audioSuccess");
+}
+
+function mostrarMensaje(mensaje) {
+  const resultadoDiv = document.getElementById("resultado");
+  if (resultadoDiv) {
+    resultadoDiv.textContent = mensaje;
+    resultadoDiv.style.display = "block";
+  }
+}
+
 function playSound(id) {
   let audio = document.getElementById(id);
-  audio.currentTime = 0;
-  audio.play();
+  if (audio) {
+    audio.currentTime = 0;
+    audio.play();
   }
+}
 
 

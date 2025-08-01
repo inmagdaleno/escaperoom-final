@@ -14,6 +14,7 @@ if (!isset($_SESSION['usuario_id'])) {
 <head>
   <meta charset="UTF-8" />
   <title>Sudoku Geométrico</title>
+  <link rel="stylesheet" href="../css/estilos.css" />
   <link rel="stylesheet" href="estilos.css" />
   <style>
   @import url('https://fonts.googleapis.com/css2?family=Barriecito&family=Barrio&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
@@ -62,6 +63,12 @@ if (!isset($_SESSION['usuario_id'])) {
       </button>
       <span class="button-label">RANKING</span>
     </div>
+    <div class="button-group">
+      <button id="btn-cerrar-sesion" class="btn-icono-esquina" title="Cerrar Sesión">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+      <span class="button-label">CERRAR</span>
+    </div>
   </div>
 
   <!-- Modal para Perfil de Usuario -->
@@ -102,7 +109,7 @@ if (!isset($_SESSION['usuario_id'])) {
             <th>Puntuación</th>
           </tr>
         </thead>
-        <tbody id="ranking-body">
+        <tbody>
           <!-- Las filas del ranking se insertarán aquí con JavaScript -->
         </tbody>
       </table>
@@ -156,7 +163,7 @@ if (!isset($_SESSION['usuario_id'])) {
 
   
 
-  <div id="game-over-overlay" class="oculto">
+  <div id="game-over-overlay" class="oculto" style="display: none;">
     <video id="game-over-video" src="../video/isla.mp4" loop></video>
     <div class="game-over-content">
       <h1>Game Over</h1>
@@ -164,6 +171,7 @@ if (!isset($_SESSION['usuario_id'])) {
     </div>
   </div>
 
+  <script src="../js/globalTimer.js"></script>
   <script src="funciones.js"></script>
 
 </body>

@@ -6,16 +6,22 @@
  * Para poder utilizar esta variables tenemos que iniciar sesion
  * session_start()
  */
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
 
-// Comprobar si el usuario ya está logueado
-if(isset($_SESSION['logueado']) && $_SESSION['logueado']) {
-    header("Location: ../juego.php");
-    exit();
-}
+// Manejo de errores más robusto
+try {
+    if (session_status() == PHP_SESSION_NONE) {
+        session_start();
+    }
 
+    // Comprobar si el usuario ya está logueado
+    if(isset($_SESSION['logueado']) && $_SESSION['logueado']) {
+        header("Location: ../juego.php");
+        exit();
+    }
+} catch (Exception $e) {
+    // En caso de error, loguear pero continuar
+    error_log("Error en login.php: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>

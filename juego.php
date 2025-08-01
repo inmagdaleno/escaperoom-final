@@ -1,12 +1,35 @@
 <?php
-session_start();
-require_once __DIR__ . '/config/config.php';
-require_once __DIR__ . '/config/database.php';
+// Evitar cualquier output antes de session_start
+ob_start();
 
+// Habilitar reporte de errores para diagnóstico
+if (defined('ENVIRONMENT') && ENVIRONMENT === 'development') {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+}
+
+// Iniciar sesión primero
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+try {
+    require_once __DIR__ . '/config/config.php';
+    require_once __DIR__ . '/config/database.php';
+} catch (Exception $e) {
+    ob_end_clean();
+    die('Error de configuración: ' . $e->getMessage());
+}
+
+// Verificar sesión después de cargar configuración
 if (!isset($_SESSION['usuario_id'])) {
+    ob_end_clean();
     header('Location: admin/login.php');
     exit;
 }
+
+// Limpiar el buffer de salida
+ob_end_clean();
 ?>
 
 <!DOCTYPE html>
@@ -161,7 +184,7 @@ if (!isset($_SESSION['usuario_id'])) {
   <div id="modal-pista" class="modal-overlay oculto" style="display:none;">
     <div class="modal-contenido">
       <h2>Pista Extra</h2>
-      <p id="pista-explicacion">Para este acertijo dispones de 1 pista extra. Pero su uso supondrá una penalización de 20 puntos en tu puntuación</p>
+      <p id="pista-explicacion">Para este acertijo dispones de 1 pista extra. Pero su uso supondrá una penalización de 25 puntos en tu puntuación</p>
       <p id="feedback-pista" class="feedback"></p>
       <div class="modal-acciones">
         <button id="btn-confirmar-pista" class="btn-pista-primario btn-primary-gradient">Confirmar</button>
@@ -193,25 +216,6 @@ if (!isset($_SESSION['usuario_id'])) {
       </section>
 
 
-      <!-- Pantalla Jungla-->
-      <section id="escena-jungla" class="pantalla">
-        <div class="contenido" id="contenido-jungla">
-          <h2>La Jungla</h2>
-          <p>Has estado vagando sin rumbo fijo cuando de pronto… algo cambia. Frente a ti se alzan unos magestuosos árboles milenarios. Su presencia impone y su silencio incomoda... pero tienes la sensación de que intentan decirte algo. Tras ellos, un camino sombrío se adentra en la espesura de la jungla. A medida que avanzas, empiezas a encontrar símbolos, números y letras tallados en la corteza con un brillo inusual.  No los entiendes pero sientes que te están guiando.</p>
-            <button id="ir-jungla">Adéntrate en la jungla</button>
-        </div>
-      </section>
-
- <!-- Pantalla Templo -->
-      <section id="escena-final" class="pantalla">
-        <div class="contenido">
-          <h2></h2>
-          <p>A lo lejos divisas lo que parecen ser los restos de un templo erigido sobre las rocas. ¿Será allí dónde se encuentra lo que necesitas para salir de aquí?</p>
-          <p>No hay tiempo para dudar. Así que te lanzas al mar y subes por las escarpadas rocas. Recorres el templo sin encontrar nada hasta que tropiezas con un pequeño tablero de madera tallado rodeado de pequeñas piezas de madera y sobre el tablero una inscripción: "Alinea cada pieza con su ancestro"</p>
-          <button id="btn-ir-sudoku">Examinar tablero</button>
-        </div>
-      </section>
-
       <!-- Pantalla Final -->
       <section id="escena-final" class="pantalla">
         <div class="contenido">
@@ -229,15 +233,7 @@ if (!isset($_SESSION['usuario_id'])) {
     </div>
   </div>
 
-    </div>
-  </section>
-
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/SplitText.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrambleTextPlugin.min.js"></script>
-
+  <script src="js/globalTimer.js"></script>
   <script src="js/funciones.js"></script>
 
 </body>

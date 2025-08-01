@@ -1,3 +1,188 @@
+/* Estilos para el modal de perfil */
+#form-perfil {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 90%;
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.perfil-img-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+#perfil-img-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.form-grupo {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.form-grupo label {
+  font-weight: 500;
+  color: #f0f0f0;
+  width: 100%;
+  max-width: 400px;
+  text-align: left;
+  display: block;
+  margin: 0 auto;
+  font-size: 14px;
+}
+
+input[type="text"], input[type="email"] {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(82, 82, 82, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 15px 30px;
+  color: #ffffff;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+  display: block;
+  margin: 0 auto;
+  margin-top: 10px;
+}
+
+input[type="text"]::placeholder, input[type="email"]::placeholder {
+  color: #bbbbbb;
+}
+
+/* Estilos para la tabla de ranking */
+#tabla-ranking {
+  width: 90%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+#tabla-ranking th, #tabla-ranking td {
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  text-align: left;
+}
+
+#tabla-ranking th {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+}
+
+#tabla-ranking tbody tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+#tabla-ranking tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-pista-primario, .btn-pista-secundario {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+  border: none;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.btn-pista-primario {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+}
+
+.btn-pista-primario:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.btn-pista-secundario {
+  backdrop-filter: blur(6px) saturate(180%);
+  background: rgba(255, 255, 255, 0.1);
+  color: #3b3b3b;
+}
+
+.btn-pista-secundario:hover {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  z-index: 2000; /* mayor que el modal1 */
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-overlay[style*="display: flex"] {
+  display: flex !important;
+}
+
+.modal-contenido {
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 20px 20px 5px 20px;
+  color: #f0f0f0;
+  width: 40vw;
+  height: 70vh;
+  max-width: 100%;
+  max-height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.oculto {
+  display: none;
+}
+
 body {
   display: flex;
   flex-direction: column;
@@ -64,14 +249,11 @@ td {
   position: relative;
 }
 
-.gold {
+.solved-gold {
   border: 6px solid transparent;
   box-sizing: border-box;
   animation: glow 2s infinite alternate;
   border-image: url('img/oro.webp') 6 round;
-}
-
-.solved-gold {
   background-image: url('img/oro.webp');
   background-size: cover;
   background-position: center;
@@ -334,33 +516,6 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   color: #bbbbbb; /* Color de placeholder más oscuro */
 }
 
-/* Estilos para la tabla de ranking */
-#tabla-ranking {
-  width: 90%;
-  border-collapse: collapse;
-  margin-top: 20px;
-}
-
-#tabla-ranking th, #tabla-ranking td {
-  padding: 12px 15px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  text-align: left;
-}
-
-#tabla-ranking th {
-  background-color: rgba(255, 255, 255, 0.15);
-  font-weight: 700;
-}
-
-#tabla-ranking tbody tr:nth-child(odd) {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-#tabla-ranking tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
 #score-container,
 #timer-container {
   position: fixed;
@@ -527,16 +682,6 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   justify-content: center;
 }
 
-.modal .cerrar {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 30px;
-  color: white; /* Cambiado a blanco para asegurar visibilidad */
-  cursor: pointer;
-  z-index: 2002; /* Asegura que esté por encima de todo */
-}
-
 #btn-guardar-perfil {
   margin-top: 10px;
   width: 100%; /* Ocupar el 100% del ancho del .form-grupo */
@@ -632,14 +777,6 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   color: #e7fef6;
 }
 
-/* Estilos para las casillas doradas */
-.golden-cell {
-  background-image: url('img/oro.webp');
-  background-size: cover;
-  background-position: center;
-  animation: shine-glow 2.5s infinite alternate ease-in-out;
-}
-
 /* General Modal Styles */
 .modal-overlay {
     display: none; /* Hidden by default */
@@ -732,13 +869,99 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
 }
 
 .continue-button {
-    @extend .btn-primary-gradient; /* Esto no es CSS estándar, es un placeholder */
+    background: linear-gradient(45deg, #ff00f0, #00ffbf);
+    background-size: 200% 200%;
     padding: 15px 30px;
     font-size: 18px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.4s ease;
+}
+
+.continue-button:hover {
+    background-position: 100% 100%;
+    transform: translateY(-2px);
+    color: #e7fef6;
 }
 
 .continue-button:hover {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilos para game over overlay */
+.oculto {
+  display: none !important;
+}
+
+#game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  flex-direction: column;
+}
+
+#game-over-overlay.oculto {
+  display: none !important;
+}
+
+#game-over-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.game-over-content {
+  position: relative;
+  text-align: center;
+  color: white;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 3rem;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.game-over-content h1 {
+  font-family: 'Barriecito', cursive;
+  font-size: 4rem;
+  margin-bottom: 2rem;
+  color: #ff6b6b;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+  letter-spacing: 2px;
+}
+
+#btn-restart {
+  padding: 15px 30px;
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.4rem;
+  font-family: 'Barriecito', cursive;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#btn-restart:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(238, 90, 36, 0.6);
+  background: linear-gradient(45deg, #ee5a24, #ff6b6b);
 }

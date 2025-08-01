@@ -1,13 +1,69 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Manejo de transición de escena jungla a mapa
+  const escenaJungla = document.getElementById("escena-jungla");
+  const escenaMapa = document.getElementById("escena-mapa");
+  const btnIrMapa = document.getElementById("ir-mapa");
+
+  // Inicializar mostrando la escena jungla primero
+  if (escenaJungla && escenaMapa) {
+    escenaJungla.classList.add("visible");
+    escenaMapa.classList.remove("visible");
+  }
+
+  // Evento para pasar de jungla a mapa
+  if (btnIrMapa) {
+    btnIrMapa.addEventListener("click", () => {
+      escenaJungla.classList.remove("visible");
+      setTimeout(() => {
+        escenaMapa.classList.add("visible");
+      }, 300);
+    });
+  }
+
   const piecesContainer = document.getElementById("pieces");
   const boardContainer = document.getElementById("board");
   const btnIrAdelante = document.getElementById("btn-ir-adelante");
+  const btnVolverAtras = document.getElementById("btn-volver-atras");
   const groupIrAdelante = document.getElementById("group-ir-adelante");
-
 
   // Elementos de la interfaz
   const scoreDisplay = document.getElementById("score");
   const timerDisplay = document.getElementById("timer");
+
+  // Estado del juego (recuperar de localStorage)
+  let gameMode = localStorage.getItem('gameMode') || 'score';
+  let score = parseInt(localStorage.getItem('score')) || 400;
+  let timeLeft = 0; // Ahora manejado por el timer global
+  
+  // Actualizar displays de timer si es necesario
+  if (gameMode === 'time' && window.globalTimer) {
+    // Asegurar que el timer global está activo
+    if (!window.globalTimer.isActive()) {
+      const hasExistingTimer = localStorage.getItem('endTime');
+      if (hasExistingTimer) {
+        window.globalTimer.resumeTimer();
+      }
+    }
+    timeLeft = window.globalTimer.getTimeLeft();
+  }
+
+  // Asegurar que el game-over-overlay esté oculto al iniciar
+  const gameOverOverlay = document.getElementById('game-over-overlay');
+  if (gameOverOverlay) {
+    gameOverOverlay.classList.add('oculto');
+    gameOverOverlay.style.display = 'none';
+  }
+
+  // Inicializar displays
+  if (gameMode === 'score') {
+    document.getElementById("score-container").style.display = "block";
+    document.getElementById("timer-container").style.display = "none";
+    if (scoreDisplay) scoreDisplay.textContent = score;
+  } else if (gameMode === 'time') {
+    document.getElementById("score-container").style.display = "none";
+    document.getElementById("timer-container").style.display = "block";
+    startTimer();
+  }
 
   // Modales
   const modalPerfil = document.getElementById('modal-perfil');
@@ -36,18 +92,72 @@ document.addEventListener("DOMContentLoaded", () => {
       modalRanking.classList.add('visible');
     });
   }
+
+  // --- BOTÓN CERRAR SESIÓN ---
+  const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
+  if (btnCerrarSesion) {
+    btnCerrarSesion.addEventListener('click', () => {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        // Limpiar datos del juego
+        localStorage.removeItem('gameMode');
+        localStorage.removeItem('score');
+        localStorage.removeItem('timeLeft');
+        localStorage.removeItem('endTime');
+        localStorage.removeItem('gameStartTime');
+        
+        // Redirigir a login
+        window.location.href = '../admin/login.php';
+      }
+    });
+  }
+
+  // --- INICIALIZACIÓN DEL TIMER ---
+  function startTimer() {
+    if (window.globalTimer) {
+      // Si ya existe un timer global, usarlo
+      const hasExistingTimer = localStorage.getItem('endTime');
+      if (hasExistingTimer) {
+        window.globalTimer.resumeTimer();
+      } else {
+        // Iniciar nuevo timer de 30 minutos
+        window.globalTimer.startNewTimer(30 * 60 * 1000);
+      }
+      
+      // Actualizar display del timer
+      window.globalTimer.onUpdate((timeLeft) => {
+        const timerDisplay = document.getElementById("timer");
+        if (timerDisplay) {
+          const minutes = Math.floor(timeLeft / 60);
+          const seconds = timeLeft % 60;
+          timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+      });
+      
+      // Manejar cuando se acaba el tiempo
+      window.globalTimer.onTimeUp(() => {
+        showGameOver();
+      });
+    }
+  }
 });
 
-  // Estado del juego (se asume que se carga de localStorage o similar)
-  let gameMode = localStorage.getItem('gameMode') || 'score'; // 'score' o 'time'
-  let score = parseInt(localStorage.getItem('score')) || 400;
-  let timeLeft = parseInt(localStorage.getItem('timeLeft')) || (30 * 60); // 30 minutos en segundos
-  let timerInterval;
+  // --- NAVEGACIÓN ---
+  // Botón "Volver Atrás"
+  if (btnVolverAtras) {
+    btnVolverAtras.addEventListener("click", () => {
+      // Marcar que se está regresando desde mapa para aplicar penalización
+      localStorage.setItem('regresoDesdeModulo', 'mapa');
+      localStorage.setItem('tiempoRegreso', Date.now());
+      // Volver al juego principal - escena jungla
+      window.location.href = "../juego.php#escena-jungla";
+    });
+  }
 
-// Evento para el botón "Ir Adelante"
+  // Botón "Ir Adelante" 
   if (btnIrAdelante) {
     btnIrAdelante.addEventListener('click', () => {
-      mostrarTransicionMapaCompleto();
+      // Ir directamente a la escena final sin resolver el mapa
+      window.location.href = "../Final/portal.php";
     });
   }
 
@@ -125,19 +235,24 @@ document.addEventListener("DOMContentLoaded", () => {
   function startTimer() {
     const endTime = localStorage.getItem('endTime');
     if (!endTime) {
-      // Handle case where timer wasn't started
-      return;
+      // Si no hay endTime, crear uno nuevo
+      const newEndTime = Date.now() + timeLeft * 1000;
+      localStorage.setItem('endTime', newEndTime);
     }
 
     timerInterval = setInterval(() => {
+      const endTime = localStorage.getItem('endTime');
       const remainingTime = endTime - Date.now();
       if (remainingTime <= 0) {
         clearInterval(timerInterval);
-        document.getElementById('game-over-overlay').classList.remove('oculto');
+        const gameOverOverlay = document.getElementById('game-over-overlay');
+        gameOverOverlay.classList.remove('oculto');
+        gameOverOverlay.style.display = 'flex';
         document.getElementById('game-over-video').play();
         return;
       }
       timeLeft = Math.ceil(remainingTime / 1000);
+      localStorage.setItem('timeLeft', timeLeft); // Mantener sincronizado
       updateTimerDisplay();
     }, 1000);
   }

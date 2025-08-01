@@ -1,11 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // --- INICIALIZACIÓN DEL TIMER ---
-  // Inicializa el timer solo si no existe
-  if (!localStorage.getItem('endTime')) {
-    const endTime = Date.now() + 30 * 60 * 1000; // 30 minutos en ms
-    localStorage.setItem('endTime', endTime);
-  }
-
   // --- ELEMENTOS DE LA INTERFAZ ---
   const btnComenzar = document.getElementById("btn-comenzar");
   const scoreDisplay = document.getElementById("score");
@@ -20,7 +13,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const pantallaIntroduccion = document.getElementById("pantalla-introduccion");
   const escenaPlaya = document.getElementById("escena-playa");
   const escenaJungla = document.getElementById("escena-jungla");
-  const pantallaFinal = document.getElementById("pantalla-final");
+  const escenaFinal = document.getElementById("escena-final");
+
+  // Hacer las pantallas accesibles globalmente para la función cambiarPantalla
+  window.pantallaBienvenida = pantallaBienvenida;
+  window.pantallaModoJuego = pantallaModoJuego;
+  window.pantallaIntroduccion = pantallaIntroduccion;
+  window.escenaPlaya = escenaPlaya;
+  window.escenaJungla = escenaJungla;
+  window.escenaFinal = escenaFinal;
 
   // Modales
   const modalPista = document.getElementById("modal-pista");
@@ -53,8 +54,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Estado del juego - Variables globales
   window.gameMode = ""; // 'score' o 'time'
-  window.score = 400;
-  window.timeLeft = 30 * 60; // 30 minutos en segundos
+  window.score = parseInt(localStorage.getItem('score')) || 400;
+  
+  // Función helper para obtener timeLeft desde el timer global
+  window.getTimeLeft = function() {
+    if (window.globalTimer) {
+      return window.globalTimer.getTimeLeft();
+    }
+    return parseInt(localStorage.getItem('timeLeft')) || (30 * 60);
+  };
+  
+  // Función helper para obtener tiempo empleado
+  window.getTimeElapsed = function() {
+    return (30 * 60) - window.getTimeLeft();
+  };
+  
   window.timerInterval;
   window.pistasUsadasPuzzle = 0; // Pistas usadas en el puzzle actual
   window.totalPistasUsadas = 0; // Pistas usadas en todo el juego
@@ -84,17 +98,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- INICIALIZACIÓN DEL JUEGO ---
   window.inicializarJuego = function() {
-    window.score = 400;
-    window.timeLeft = 30 * 60;
+    // Limpiar localStorage al reiniciar
+    localStorage.removeItem('endTime');
+    localStorage.setItem('score', 400);
+    localStorage.setItem('timeLeft', 30 * 60);
+    localStorage.removeItem('gameMode'); // Permitir seleccionar modo nuevamente
+    
+    window.score = parseInt(localStorage.getItem('score')) || 400;
+    window.timeLeft = parseInt(localStorage.getItem('timeLeft')) || (30 * 60);
     window.totalPistasUsadas = 0;
     window.pistasUsadasPuzzle = 0;
+    // Resetear gameMode solo si no se ha establecido ninguno
+    if (!window.gameMode) {
+      // Intentar recuperar de localStorage primero
+      const savedGameMode = localStorage.getItem('gameMode');
+      window.gameMode = savedGameMode || "";
+    }
     if (scoreDisplay) scoreDisplay.textContent = window.score;
     window.updateTimerDisplay();
     clearInterval(window.timerInterval);
     localStorage.removeItem('endTime');
 
     // Mostrar la pantalla de introducción al inicializar
-    window.cambiarPantalla(null, pantallaIntroduccion);
+    window.cambiarPantalla(null, window.pantallaIntroduccion);
     
     // Mostrar el modal de introducción usando openOverlayModal
     const modalIntroduccion = document.getElementById("modal-introduccion");
@@ -116,18 +142,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- NAVEGACIÓN ENTRE PANTALLAS ---
   window.cambiarPantalla = function(pantallaOcultar, pantallaMostrar) {
-    console.log(`Cambiando pantalla de ${pantallaOcultar ? pantallaOcultar.id : 'ninguna'} a ${pantallaMostrar.id}`);
-    if (pantallaOcultar) pantallaOcultar.classList.remove("visible");
-    pantallaMostrar.classList.add("visible");
+    if (pantallaOcultar) {
+      pantallaOcultar.classList.remove("visible");
+    }
+    
+    if (pantallaMostrar) {
+      pantallaMostrar.classList.add("visible");
+    }
 
     const scoreContainer = document.getElementById("score-container");
     const timerContainer = document.getElementById("timer-container");
     
     // No mostrar elementos del juego en pantallas de introducción, bienvenida, modo de juego o final
-    if (pantallaMostrar !== pantallaBienvenida && 
-        pantallaMostrar !== pantallaModoJuego && 
-        pantallaMostrar !== pantallaFinal && 
-        pantallaMostrar !== pantallaIntroduccion) {
+    if (pantallaMostrar !== window.pantallaBienvenida && 
+        pantallaMostrar !== window.pantallaModoJuego && 
+        pantallaMostrar !== window.escenaFinal && 
+        pantallaMostrar !== window.pantallaIntroduccion) {
       if (btnPistaExtra) btnPistaExtra.style.display = "flex";
       if (window.gameMode === 'score') {
         if (scoreContainer) scoreContainer.style.display = "block";
@@ -145,47 +175,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- TEMPORIZADOR ---
   window.startTimer = function() {
-    clearInterval(window.timerInterval);
-    const endTime = Date.now() + 30 * 60 * 1000;
-    localStorage.setItem('endTime', endTime);
-
-    window.timerInterval = setInterval(() => {
-      const remainingTime = endTime - Date.now();
-      if (remainingTime <= 0) {
-        clearInterval(window.timerInterval);
-        const overlay = document.getElementById('game-over-overlay');
-        const video = document.getElementById('game-over-video');
-        if (overlay) overlay.classList.remove('oculto');
-        if (video) video.play();
-        return;
+    // Usar el timer global
+    if (window.globalTimer) {
+      if (window.globalTimer.getGameMode() === 'time') {
+        // Si ya hay un timer activo, reanudarlo. Si no, crear uno nuevo
+        if (!window.globalTimer.isActive()) {
+          const hasExistingTimer = localStorage.getItem('endTime');
+          if (hasExistingTimer) {
+            window.globalTimer.resumeTimer();
+          } else {
+            window.globalTimer.startNewTimer();
+          }
+        }
       }
-      window.timeLeft = Math.ceil(remainingTime / 1000);
-      window.updateTimerDisplay();
-    }, 1000);
+    }
   }
 
   window.updateTimerDisplay = function() {
-    if (window.gameMode !== 'time') return;
-
-    // Primero intentar actualizar el display digital del temporizador si existe
-    const minTens = document.getElementById('minTens');
-    const minUnits = document.getElementById('minUnits');
-    const secTens = document.getElementById('secTens');
-    const secUnits = document.getElementById('secUnits');
-
-    if (minTens && minUnits && secTens && secUnits) {
-      const minutes = Math.floor(window.timeLeft / 60);
-      const seconds = window.timeLeft % 60;
-      const minStr = String(minutes).padStart(2, '0');
-      const secStr = String(seconds).padStart(2, '0');
-      minTens.textContent = minStr[0];
-      minUnits.textContent = minStr[1];
-      secTens.textContent = secStr[0];
-      secUnits.textContent = secStr[1];
-    }
-
-    // También actualizar el display básico si existe
-    if (timerDisplay) timerDisplay.textContent = window.formatTime(window.timeLeft);
+    // Esta función ahora es manejada por el timer global
+    // Mantenemos la función para compatibilidad pero el timer global maneja la actualización
   }
 
   window.formatTime = function(seconds) {
@@ -196,8 +204,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- ENVIAR RESULTADOS DE LA PARTIDA ---
   window.sendGameResult = function() {
+    // Calcular tiempo empleado (solo relevante para modo tiempo)
+    const tiempoEmpleado = window.gameMode === 'time' ? 
+      window.getTimeElapsed() : // Tiempo empleado usando helper
+      0; // Para modo puntuación no es relevante
+    
     const gameData = {
-      modo_juego: window.gameMode,
+      id_prueba: 5, // ID de la prueba final según la base de datos
+      tiempo_empleado: tiempoEmpleado,
+      modo_juego: window.gameMode === 'score' ? 'puntos' : 'tiempo', // Convertir al formato esperado por PHP
       pistas_usadas: window.totalPistasUsadas,
       resultado: 1
     };
@@ -207,10 +222,10 @@ document.addEventListener("DOMContentLoaded", () => {
       gameData.tiempo_restante_final = null;
     } else if (window.gameMode === 'time') {
       gameData.puntuacion_final = null;
-      gameData.tiempo_restante_final = window.timeLeft;
+      gameData.tiempo_restante_final = window.getTimeLeft();
     }
 
-    fetch('/controller/guardarPartida.php', {
+    fetch('controller/guardarPartida.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(gameData),
@@ -296,11 +311,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (puzzle.modal) puzzle.modal.style.display = "none";
             const pantallaActual = puzzle.btnVer.closest(".pantalla");
             window.cambiarPantalla(pantallaActual, puzzle.escenaSiguiente);
-            if (puzzle.escenaSiguiente === pantallaFinal) {
+            if (puzzle.escenaSiguiente === window.escenaFinal) {
               window.sendGameResult();
               if (window.gameMode === 'score') {
                 if (window.totalPistasUsadas === 0) {
                   window.score += 100;
+                  localStorage.setItem('score', window.score); // Guardar en localStorage
                   alert("¡Felicidades! Has completado el juego sin usar pistas y ganas 100 puntos de bonus.");
                 }
                 if (scoreFinalDisplay) scoreFinalDisplay.textContent = window.score;
@@ -313,10 +329,17 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           if (window.gameMode === 'score') {
             window.score -= 10;
+            localStorage.setItem('score', window.score); // Guardar en localStorage
             if (scoreDisplay) scoreDisplay.textContent = window.score;
             if (puzzle.feedback) puzzle.feedback.textContent = "Incorrecto, prueba de nuevo. Has perdido 10 puntos.";
           } else if (window.gameMode === 'time') {
             window.timeLeft -= 60;
+            localStorage.setItem('timeLeft', window.timeLeft); // Guardar en localStorage
+            
+            // Actualizar el endTime para reflejar la penalización
+            const newEndTime = Date.now() + (window.timeLeft * 1000);
+            localStorage.setItem('endTime', newEndTime);
+            
             window.updateTimerDisplay();
             if (puzzle.feedback) puzzle.feedback.textContent = "Incorrecto, prueba de nuevo. Has perdido 1 minuto.";
             if (window.timeLeft <= 0) {
@@ -345,9 +368,16 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (window.gameMode === 'score') {
         window.score -= 25;
+        localStorage.setItem('score', window.score); // Guardar en localStorage
         if (scoreDisplay) scoreDisplay.textContent = window.score;
       } else if (window.gameMode === 'time') {
         window.timeLeft -= 120; // Resta 2 minutos
+        localStorage.setItem('timeLeft', window.timeLeft); // Guardar en localStorage
+        
+        // Actualizar el endTime para reflejar la penalización
+        const newEndTime = Date.now() + (window.timeLeft * 1000);
+        localStorage.setItem('endTime', newEndTime);
+        
         window.updateTimerDisplay();
         if (window.timeLeft <= 0) {
           clearInterval(window.timerInterval);
@@ -387,9 +417,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnPistaExtraModal1 && modalPista) {
     btnPistaExtraModal1.addEventListener('click', () => {
       if (window.gameMode === 'time') {
-        pistaExplicacion.textContent = 'Para este acertijo dispones de 1 pista extra. Pero su uso supondrá una penalización de 1 minuto en tu tiempo restante.';
+        pistaExplicacion.textContent = 'Para este acertijo dispones de 1 pista extra. Pero su uso supondrá una penalización de 2 minutos que se descontarán a tu marcador.';
       } else {
-        pistaExplicacion.textContent = 'Para este acertijo dispones de 1 pista extra. Pero su uso supondrá una penalización de 20 puntos en tu puntuación.';
+        pistaExplicacion.textContent = 'Para este acertijo dispones de 1 pista extra. Pero su uso supondrá una penalización de 25 puntos en tu puntuación.';
       }
       modalPista.style.display = 'flex';
       modalPista.classList.remove('oculto');
@@ -401,16 +431,24 @@ document.addEventListener("DOMContentLoaded", () => {
     btnConfirmarPista.addEventListener('click', () => {
       // Penalización según el modo de juego
       if (window.gameMode === 'time') {
-        window.timeLeft = Math.max(0, window.timeLeft - 60);
-        window.updateTimerDisplay();
+        // Usar el timer global para aplicar penalización
+        if (window.globalTimer) {
+          window.globalTimer.applyPenalty(120); // 2 minutos
+        }
       } else if (window.gameMode === 'score') {
-        window.score = Math.max(0, window.score - 20);
+        // Descontar 25 puntos
+        window.score = Math.max(0, window.score - 25);
+        localStorage.setItem('score', window.score); // Guardar en localStorage
         if (scoreDisplay) scoreDisplay.textContent = window.score;
       }
       
       const feedbackPista = document.getElementById('feedback-pista');
       if (feedbackPista) {
-        feedbackPista.textContent = '¡Has usado una pista! Se ha aplicado la penalización.';
+        if (window.gameMode === 'time') {
+          feedbackPista.textContent = '¡Has usado una pista! Se han descontado 2 minutos de tu tiempo.';
+        } else {
+          feedbackPista.textContent = '¡Has usado una pista! Se han descontado 25 puntos de tu puntuación.';
+        }
         feedbackPista.classList.remove('success', 'error');
         feedbackPista.classList.add('warning');
       }
@@ -465,7 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!tablaRankingBody) return;
     tablaRankingBody.innerHTML = '';
     
-    fetch('/controller/obtenerRanking.php', {
+    fetch('controller/obtenerRanking.php', {
       method: 'GET',
       headers: { 'Accept': 'application/json' }
     })
@@ -580,6 +618,45 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll('.pantalla').forEach(sec => sec.classList.remove('visible'));
     const hash = window.location.hash.replace('#', '');
     const seccion = document.getElementById(hash);
+    
+    // Aplicar penalización de 2 minutos cuando se regresa desde módulos
+    const regresoDesde = localStorage.getItem('regresoDesdeModulo');
+    const tiempoRegreso = localStorage.getItem('tiempoRegreso');
+    
+    // Verificar que el regreso sea reciente (menos de 5 segundos) para evitar penalizaciones múltiples
+    if (regresoDesde && tiempoRegreso && (Date.now() - parseInt(tiempoRegreso)) < 5000) {
+      // Aplicar penalización según la escena de destino
+      const esEscenaDestino = (hash === 'escena-templo' && regresoDesde === 'sudoku') ||
+                             (hash === 'escena-jungla' && regresoDesde === 'mapa');
+      
+      if (esEscenaDestino && window.gameMode === 'time' && window.timeLeft > 0) {
+        window.timeLeft = Math.max(0, window.timeLeft - 120); // 2 minutos de penalización
+        localStorage.setItem('timeLeft', window.timeLeft);
+        
+        // Actualizar el endTime para reflejar la penalización
+        const newEndTime = Date.now() + (window.timeLeft * 1000);
+        localStorage.setItem('endTime', newEndTime);
+        
+        window.updateTimerDisplay();
+        
+        // Mostrar notificación de penalización
+        setTimeout(() => {
+          alert(`Penalización aplicada: -2 minutos por regresar desde ${regresoDesde}`);
+        }, 500);
+        
+        if (window.timeLeft <= 0) {
+          clearInterval(window.timerInterval);
+          alert("¡Se acabó el tiempo! Fin del juego.");
+          window.inicializarJuego();
+          return;
+        }
+      }
+      
+      // Limpiar las marcas de regreso para evitar penalizaciones múltiples
+      localStorage.removeItem('regresoDesdeModulo');
+      localStorage.removeItem('tiempoRegreso');
+    }
+    
     if (seccion) {
       seccion.classList.add('visible');
     } else {
@@ -592,18 +669,34 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- EVENTOS PRINCIPALES ---
   if (btnComenzar) {
     btnComenzar.addEventListener("click", () => {
-      console.log("Clic en 'Comenzar la aventura'");
-      window.gameMode = 'score';
-      document.getElementById("score-container").style.display = "block";
-      document.getElementById("timer-container").style.display = "none";
+      // No forzar el gameMode aquí, mantener el modo seleccionado previamente
+      // Solo cambiar a modo score si no se ha seleccionado ningún modo
+      if (!window.gameMode) {
+        window.gameMode = 'score';
+        localStorage.setItem('gameMode', 'score'); // Guardar en localStorage
+      }
+      
+      // Mostrar el contador apropiado según el modo de juego
+      if (window.gameMode === 'score') {
+        document.getElementById("score-container").style.display = "block";
+        document.getElementById("timer-container").style.display = "none";
+      } else if (window.gameMode === 'time') {
+        document.getElementById("score-container").style.display = "none";
+        document.getElementById("timer-container").style.display = "block";
+        // Asegurar que el timer esté funcionando
+        if (!window.timerInterval) {
+          window.startTimer();
+        }
+      }
+      
       window.cambiarPantalla(pantallaBienvenida, escenaPlaya);
     });
   }
   
   if (btnModoPuntuacion) {
     btnModoPuntuacion.addEventListener("click", () => {
-      console.log("Clic en 'Modo Puntuación'");
       window.gameMode = 'score';
+      localStorage.setItem('gameMode', 'score'); // Guardar en localStorage
       document.getElementById("score-container").style.display = "block";
       document.getElementById("timer-container").style.display = "none";
       window.cambiarPantalla(pantallaModoJuego, pantallaBienvenida);
@@ -612,8 +705,14 @@ document.addEventListener("DOMContentLoaded", () => {
   
   if (btnModoTiempo) {
     btnModoTiempo.addEventListener("click", () => {
-      console.log("Clic en 'Modo Contrarreloj'");
       window.gameMode = 'time';
+      localStorage.setItem('gameMode', 'time'); // Guardar en localStorage
+      
+      // Configurar el timer global
+      if (window.globalTimer) {
+        window.globalTimer.setGameMode('time');
+      }
+      
       document.getElementById("score-container").style.display = "none";
       document.getElementById("timer-container").style.display = "block";
       window.startTimer();
@@ -632,6 +731,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnIrSudoku) {
     btnIrSudoku.addEventListener("click", () => {
       window.location.href = "sudoku/sudoku.php";
+    });
+  }
+
+  const btnIrJungla = document.getElementById("ir-jungla");
+  if (btnIrJungla) {
+    btnIrJungla.addEventListener("click", () => {
+      window.location.href = "mapa/mapa.php";
     });
   }
 
@@ -707,6 +813,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Iniciar el juego por primera vez
-  window.inicializarJuego();
+  // Iniciar el juego por primera vez solo si no hay un timer activo
+  if (!localStorage.getItem('endTime')) {
+    window.inicializarJuego();
+  } else {
+    // Forzar inicialización para evitar problemas
+    localStorage.removeItem('endTime');
+    window.inicializarJuego();
+  }
+
 });

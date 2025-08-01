@@ -102,7 +102,7 @@ if (!isset($_SESSION['usuario_id'])) {
   <div class="esquina-superior-izquierda">
     <div class="button-group" id="group-ir-atras">
       <!-- Botón Atrás -->
-      <button id="btn-volver-atras" class="btn-icono-esquina" onclick="history.back()">
+      <button id="btn-volver-atras" class="btn-icono-esquina" title="Volver Atrás">
         <i class="fa-solid fa-arrow-left"></i>
       </button>
       <span class="button-label">ATRÁS</span>
@@ -168,7 +168,7 @@ if (!isset($_SESSION['usuario_id'])) {
     </div>
   </section>
 
-  <div id="game-over-overlay" class="oculto">
+  <div id="game-over-overlay" class="oculto" style="display: none;">
     <video id="game-over-video" src="../video/isla.mp4" loop></video>
     <div class="game-over-content">
       <h1>Game Over</h1>

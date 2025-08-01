@@ -25,7 +25,6 @@ $tiempo_restante_final = isset($data['tiempo_restante_final']) ? intval($data['t
 if (
     !$id_prueba ||
     $tiempo_empleado === null ||
-    $resultado === null ||
     !in_array($modo_juego, ['puntos', 'tiempo'])
 ) {
     echo json_encode(['success' => false, 'mensaje' => 'Datos incompletos o incorrectos']);

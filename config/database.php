@@ -22,13 +22,32 @@ class Database {
 
     //Abre la conexión con la base de datos
     private function connect(){
-        $this->conexion = new mysqli($this->host, $this->username, $this->password, $this->database);
+        try {
+            $this->conexion = new mysqli($this->host, $this->username, $this->password, $this->database);
 
-        if($this->conexion->connect_error){
-            die("Error de conexión: " . $this->conexion->connect_error);
+            if($this->conexion->connect_error){
+                $error_msg = "Error de conexión: " . $this->conexion->connect_error;
+                
+                // En producción, loguear el error pero no mostrarlo
+                if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+                    error_log($error_msg);
+                    die("Error de conexión a la base de datos. Por favor, contacte al administrador.");
+                } else {
+                    die($error_msg);
+                }
+            }
+
+            $this->conexion->set_charset("utf8");
+        } catch (Exception $e) {
+            $error_msg = "Excepción en conexión: " . $e->getMessage();
+            
+            if (defined('ENVIRONMENT') && ENVIRONMENT === 'production') {
+                error_log($error_msg);
+                die("Error de conexión a la base de datos. Por favor, contacte al administrador.");
+            } else {
+                die($error_msg);
+            }
         }
-
-        $this->conexion->set_charset("utf8");
     }
 
     public function getConexion(){

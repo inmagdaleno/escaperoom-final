@@ -1,3 +1,113 @@
+/* Estilos globales de texto consistentes con juego.php */
+h2 {
+  font-family: "Barriecito", system-ui;
+  font-size: 40px;
+  font-weight: 700;
+  color: #f0f0f0;
+  margin-bottom: 30px;
+}
+
+p {
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 650;
+  margin-bottom: 40px;
+  color: #f0f0f0;
+}
+
+/* Contenido general con glass effect */
+.contenido {
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 40px;
+  color: #f0f0f0;
+  max-width: 600px;
+}
+
+.contenido p {
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 650;
+  margin-bottom: 40px;
+  color: #f0f0f0;
+}
+
+/* Estilos para pantallas de jungla y mapa */
+.pantalla {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.pantalla.visible {
+  display: block;
+  opacity: 1;
+}
+
+#escena-jungla {
+  
+  background-position: center;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#contenido-jungla {
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 15px;
+  padding: 40px;
+  max-width: 600px;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#contenido-jungla h2 {
+  font-family: 'Barriecito', system-ui;
+  font-size: 2.5em;
+  margin-bottom: 20px;
+  color: #00ffbf;
+}
+
+#contenido-jungla p {
+  font-size: 1.2em;
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+#ir-mapa {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+}
+
+#ir-mapa:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+#escena-mapa {
+  background: linear-gradient(135deg, rgba(139, 69, 19, 0.8), rgba(160, 82, 45, 0.9)), url('../img/fondo_piedra.webp');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+}
+
 /* Botones de esquina superior derecha */
 .esquina-superior-derecha {
   position: fixed;
@@ -108,13 +218,14 @@ input[type="text"], input[type="email"] {
   -webkit-backdrop-filter: blur(7px);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 12px 24px;
+  padding: 15px 30px;
   color: #ffffff;
-  width: 100%; /* Ocupar el 100% del ancho del .form-grupo */
+  width: 100%;
   max-width: 400px;
   box-sizing: border-box;
-  display: block; /* Asegura que el input se comporte como un bloque */
-  margin: 0 auto; /* Centrar el input */
+  display: block;
+  margin: 0 auto;
+  margin-top: 10px;
 }
 
 input[type="text"]::placeholder, input[type="email"]::placeholder {
@@ -165,6 +276,44 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   color: #e7fef6;
 }
 
+/* Estilos globales para botones - consistente con juego.php */
+button {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+}
+
+button:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+}
+
+.btn-primary-gradient:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
 .modal-acciones {
   display: flex;
   gap: 20px;
@@ -173,32 +322,73 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   justify-content: center;
 }
 
-/* General Modal Styles */
+.continue-button{
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+}
+
+.continue-button:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  width: 100%;
+  justify-content: center;
+}
+
+/* Estilos de modales consistentes con juego.php */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
 .modal-overlay {
-    display: none; /* Hidden by default */
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+    background-color: rgba(0, 0, 0, 0.8);
     justify-content: center;
     align-items: center;
-    z-index: 2000; /* Ensure it's on top */
+    z-index: 2000;
 }
 
 .modal-contenido {
-    background: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
+    background: rgba(255, 255, 255, 0.26);
     box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
-    backdrop-filter: blur(7px); /* Glass effect */
+    backdrop-filter: blur(7px);
     -webkit-backdrop-filter: blur(7px);
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.18);
     padding: 20px;
-    color: #fff; /* White text for contrast */
-    width: 50vw;
+    color: #f0f0f0;
+    width: 40vw;
+    height: 70vh;
     max-width: 600px;
-    height: auto;
     max-height: 90vh;
     position: relative;
     display: flex;
@@ -210,30 +400,33 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
 }
 
 .modal-contenido h2 {
-    color: white;
+    color: #e7fef6;
     font-family: "Barriecito";
-    font-size: 28px;
+    font-size: 32px;
     margin-bottom: 15px;
 }
 
 .modal-contenido p {
-    font-size: 18px;
+    font-size: 16px;
+    line-height: 26px;
+    font-weight: 650;
     margin-bottom: 20px;
-    font-weight: 400;
+    color: #f0f0f0;
 }
 
 .cerrar {
     position: absolute;
-    top: 15px;
-    right: 25px;
-    font-size: 35px;
+    top: 20px;
+    right: 30px;
+    font-size: 30px;
     color: white;
     cursor: pointer;
+    z-index: 2002;
     transition: color 0.3s ease;
 }
 
 .cerrar:hover {
-    color: #ff00f0; /* Highlight on hover */
+    color: #ff00f0;
 }
 
 .modal-image {
@@ -263,26 +456,66 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   color: #e7fef6;
 }
 
+/* Modal específico para el mapa completado - consistente con estilos globales */
+.modal-content {
+    background: rgba(255, 255, 255, 0.26);
+    box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 20px 20px 30px 20px;
+    color: #f0f0f0;
+    width: 40vw;
+    height: auto;
+    max-width: 600px;
+    max-height: 85vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: auto;
+    text-align: center;
+    margin-top: 5vh;
+}
+
+.modal-content h2 {
+    color: #e7fef6;
+    font-family: "Barriecito";
+    font-size: 32px;
+    margin-bottom: 15px;
+    margin-top: 10px;
+}
+
+.modal-content p {
+    font-size: 16px;
+    line-height: 26px;
+    font-weight: 650;
+    margin-bottom: 20px;
+    color: #f0f0f0;
+}
+
 .close-button {
     position: absolute;
-    top: 15px;
-    right: 25px;
-    font-size: 35px;
+    top: 20px;
+    right: 30px;
+    font-size: 30px;
     color: white;
     cursor: pointer;
     transition: color 0.3s ease;
 }
 
 .close-button:hover {
-    color: #ff00f0; /* Highlight on hover */
+    color: #ff00f0;
 }
 
 #btn-guardar-perfil {
   margin-top: 10px;
-  width: 100%; /* Ocupar el 100% del ancho del .form-grupo */
+  width: 100%;
   max-width: 400px;
-  padding: 12px 24px; /* Ajustar el padding para que coincida con los inputs */
-  box-sizing: border-box; /* Asegurar que el padding se incluya en el ancho */
+  padding: 12px 24px;
+  box-sizing: border-box;
 }
 
 /* Score Display */
@@ -470,13 +703,13 @@ body.fondo-piedra2 {
   background-size: 200% 200%;
   color: white;
   border: none;
-  padding: 13px 26px;
+  padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.4s ease;
   box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
-  font-size: 18px;
+  font-size: 16px;
   min-width: 150px;
   position: fixed;
   top: 50%;
@@ -487,6 +720,7 @@ body.fondo-piedra2 {
 
 #btn-examinar-mapa:hover {
   background-position: 100% 100%;
+  transform: translate(-50%, -50%) translateY(-2px);
   color: #e7fef6;
 }
 
@@ -498,5 +732,164 @@ body.fondo-piedra2 {
 .fade-out {
   opacity: 0 !important;
   transition: opacity 3s;
+}
+
+/* Estilos para game over overlay */
+.oculto {
+  display: none !important;
+}
+
+#game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  flex-direction: column;
+}
+
+#game-over-overlay.oculto {
+  display: none !important;
+}
+
+#game-over-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.game-over-content {
+  position: relative;
+  text-align: center;
+  color: white;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 3rem;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.game-over-content h1 {
+  font-family: 'Barriecito', cursive;
+  font-size: 4rem;
+  margin-bottom: 2rem;
+  color: #ff6b6b;
+  text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.8);
+  letter-spacing: 2px;
+}
+
+#btn-restart {
+  padding: 15px 30px;
+  background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.4rem;
+  font-family: 'Barriecito', cursive;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#btn-restart:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(238, 90, 36, 0.6);
+  background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+}
+
+/* Estilos para score y timer - heredados del juego principal */
+#score-container, #timer-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  animation: animated-gradient 3s ease-in-out infinite;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 20px;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+}
+
+@keyframes animated-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Estilos para el contenido de la jungla */
+#contenido-jungla {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 6vh; /* Posicionado en el tercio inferior con margen */
+  width: 75vw; /* Aumentado para que el párrafo tenga más ancho */
+  max-width: 900px; /* Aumentado el ancho máximo */
+  height: auto;
+  min-height: 200px; /* Aumentada la altura mínima para más espacio */
+  max-height: 38vh; /* Aumentado para acomodar el padding extra */
+  background: rgba(255,255,255,0.18);
+  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 35px 30px; /* Aumentado padding vertical de 25px a 35px */
+  z-index: 10;
+  color: #f0f0f0;
+  box-sizing: border-box; /* Asegurar que el padding no cause desbordamiento */
+}
+
+#contenido-jungla h2 {
+  font-family: "Barriecito", system-ui;
+  font-size: 32px; /* Reducido más el tamaño para evitar desbordamiento */
+  font-weight: 700;
+  color: #f0f0f0;
+  margin-bottom: 15px; /* Reducido el margen */
+  margin-top: 0; /* Asegurar que no hay margen superior */
+}
+
+#contenido-jungla p {
+  font-size: 16px; /* Aumentado para mayor legibilidad */
+  line-height: 26px; /* Reducido para compactar verticalmente */
+  font-weight: 650;
+  margin-bottom: 15px; /* Reducido el margen */
+  color: #f0f0f0;
+  text-align: center;
+  max-width: 95%; /* Aumentado para ocupar más ancho y tener menos líneas */
+  width: 100%; /* Asegurar que ocupe el ancho disponible */
+}
+
+#contenido-jungla button {
+  margin-top: 0px; /* Eliminado margen superior */
+  margin-bottom: 5px; /* Reducido el margen inferior */
+}
+
+/* Asegurar que el fondo de la jungla tenga la imagen correcta */
+#escena-jungla {
+  background-image: url('../img/jungla.webp');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 

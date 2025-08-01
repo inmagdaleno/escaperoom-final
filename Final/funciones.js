@@ -1,39 +1,120 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Elementos de la interfaz
+    const scoreDisplay = document.getElementById("score");
+    const timerDisplay = document.getElementById("timer");
+
+    // Estado del juego (recuperar de localStorage)
+    let gameMode = localStorage.getItem('gameMode') || 'score';
+    let score = parseInt(localStorage.getItem('score')) || 400;
+    let timeLeft = parseInt(localStorage.getItem('timeLeft')) || (30 * 60);
+    let timerInterval;
+
+    // Asegurar que el game-over-overlay esté oculto al iniciar
+    const gameOverOverlay = document.getElementById('game-over-overlay');
+    if (gameOverOverlay) {
+        gameOverOverlay.classList.add('oculto');
+        gameOverOverlay.style.display = 'none';
+    }
+
+    // Inicializar displays
+    if (gameMode === 'score') {
+        document.getElementById("score-container").style.display = "block";
+        document.getElementById("timer-container").style.display = "none";
+        if (scoreDisplay) scoreDisplay.textContent = score;
+    } else if (gameMode === 'time') {
+        document.getElementById("score-container").style.display = "none";
+        document.getElementById("timer-container").style.display = "block";
+        startTimer();
+    }
+
     // --- TIMER GLOBAL ---
     function startTimer() {
-        const timerDisplay = document.getElementById('timer');
-        const gameOverOverlay = document.getElementById('game-over-overlay');
-        const gameOverVideo = document.getElementById('game-over-video');
-        let timerInterval;
-
-        // Inicializa endTime si no existe (30 minutos)
-        if (!localStorage.getItem('endTime')) {
-            const endTime = Date.now() + 30 * 60 * 1000;
-            localStorage.setItem('endTime', endTime);
+        const endTime = localStorage.getItem('endTime');
+        if (!endTime) {
+            // Si no hay endTime, crear uno nuevo
+            const newEndTime = Date.now() + timeLeft * 1000;
+            localStorage.setItem('endTime', newEndTime);
         }
-        const endTime = parseInt(localStorage.getItem('endTime'), 10);
 
-        function updateTimer() {
+        timerInterval = setInterval(() => {
+            const endTime = localStorage.getItem('endTime');
             const remainingTime = endTime - Date.now();
             if (remainingTime <= 0) {
                 clearInterval(timerInterval);
-                localStorage.removeItem('endTime');
-                if (gameOverOverlay) gameOverOverlay.classList.remove('oculto');
-                if (gameOverVideo) gameOverVideo.play();
-                if (timerDisplay) timerDisplay.textContent = "0:00";
+                const gameOverOverlay = document.getElementById('game-over-overlay');
+                gameOverOverlay.classList.remove('oculto');
+                gameOverOverlay.style.display = 'flex';
+                document.getElementById('game-over-video').play();
                 return;
             }
-            const minutes = Math.floor((remainingTime / 1000) / 60);
-            const seconds = Math.floor((remainingTime / 1000) % 60);
-            if (timerDisplay) timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
+            timeLeft = Math.ceil(remainingTime / 1000);
+            localStorage.setItem('timeLeft', timeLeft); // Mantener sincronizado
+            updateTimerDisplay();
+        }, 1000);
+    }
 
-        updateTimer();
-        timerInterval = setInterval(updateTimer, 1000);
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        if (timerDisplay) timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
-    if (document.getElementById('timer')) {
-        startTimer();
+
+    // --- NAVEGACIÓN ---
+    const btnVolverAtras = document.getElementById("btn-volver-atras");
+    const btnIrAdelante = document.getElementById("btn-ir-adelante");
+
+    // Botón "Volver Atrás"
+    if (btnVolverAtras) {
+        btnVolverAtras.addEventListener("click", () => {
+            // Volver al mapa
+            window.location.href = "../mapa/mapa.php";
+        });
     }
+
+    // Botón "Ir Adelante" 
+    if (btnIrAdelante) {
+        btnIrAdelante.addEventListener("click", () => {
+            // Simular victoria - mostrar pantalla de victoria directamente
+            const victoryScreen = document.getElementById('victory-screen');
+            const currentScene = document.querySelector('.pantalla.visible');
+            if (currentScene) {
+                currentScene.classList.remove('visible');
+                currentScene.classList.add('oculto');
+            }
+            victoryScreen.classList.remove('oculto');
+            victoryScreen.classList.add('visible');
+            document.getElementById('victory-video').play();
+            
+            // Ocultar elementos de la interfaz
+            document.getElementById('score-container').style.display = 'none';
+            document.getElementById('timer-container').style.display = 'none';
+            document.querySelector('.esquina-superior-derecha').style.display = 'none';
+            document.querySelector('.esquina-superior-izquierda').style.display = 'none';
+        });
+    }
+
+    // --- BOTÓN CONTINUAR PORTAL ---
+    const btnIrPortal = document.getElementById("btn-ir-portal");
+    if (btnIrPortal) {
+        btnIrPortal.addEventListener("click", () => {
+            // Cambiar de escena-final a escena-discos
+            const escenaFinal = document.getElementById('escena-final');
+            const escenaDiscos = document.getElementById('escena-discos');
+            
+            if (escenaFinal && escenaDiscos) {
+                escenaFinal.classList.remove('visible');
+                escenaFinal.classList.add('oculto');
+                escenaDiscos.classList.remove('oculto');
+                escenaDiscos.classList.add('visible');
+            }
+        });
+    }
+
+    // Botón restart del game over
+    document.getElementById('btn-restart').addEventListener('click', () => {
+        localStorage.removeItem('endTime');
+        window.location.href = '../juego.php';
+    });
 
     // --- ENVIAR PARTIDA ---
     function enviarPartida(gameData) {
@@ -249,6 +330,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (allCorrect) {
+            // Detener el timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
             const victoryScreen = document.getElementById('victory-screen');
             const currentScene = document.querySelector('.pantalla.visible');
             if (currentScene) {
@@ -259,6 +345,15 @@ document.addEventListener('DOMContentLoaded', () => {
             victoryScreen.classList.add('visible');
             document.getElementById('victory-video').play();
             localStorage.removeItem('endTime'); // Clear the timer on victory
+            
+            // Guardar la partida completada
+            const gameData = {
+                completed: true,
+                score: gameMode === 'score' ? score : null,
+                time: gameMode === 'time' ? timeLeft : null,
+                mode: gameMode
+            };
+            enviarPartida(gameData);
 
             // Hide other elements like score/timer containers
             document.getElementById('score-container').style.display = 'none';
