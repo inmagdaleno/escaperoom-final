@@ -1,0 +1,744 @@
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('img/fondoTropical.webp');
+  background-size: cover;
+  background-position: bottom -80px;
+  font-family: 'Montserrat', sans-serif;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  overflow: hidden;
+}
+
+h1 {
+  font-family: "Barriecito";
+  font-size: 40px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 0px; /* Moved closer to p */
+  margin-top: 60px; /* Moved 10px down */
+}
+
+p {
+  font-size: 16px;
+  line-height: 26px;
+  font-weight: 650;
+  margin-bottom: 20px;
+  color: #ffffff;
+}
+
+#outerContainer {
+  margin-top: 150px;
+  width: 540px;
+  height: 540px;
+  display: flex;
+  margin-left: 10px;
+  justify-content: center;
+  align-items: center;
+  background-image: url('img/tableroFinal.webp');
+  background-size: cover;
+  background-position: center;
+  border-radius: 16px;
+  filter: drop-shadow(-20px 20px 20px rgba(0, 0, 0, 0.8));
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0 auto;
+  margin-top: -9px;
+  box-shadow: 0 0 15px #000;
+  width: 395px;
+  height: 405px;
+  z-index: 10;
+}
+
+td {
+  width: 60px;
+  height: 60px;
+  text-align: center;
+  vertical-align: middle;
+  position: relative;
+}
+
+.gold {
+  border: 6px solid transparent;
+  box-sizing: border-box;
+  animation: glow 2s infinite alternate;
+  border-image: url('img/oro.webp') 6 round;
+}
+
+.solved-gold {
+  background-image: url('img/oro.webp');
+  background-size: cover;
+  background-position: center;
+  animation: shine-glow 2.5s infinite alternate ease-in-out; /* Longer duration, smoother timing */
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px gold; }
+  100% { box-shadow: 0 0 10px gold; }
+}
+
+@keyframes shine-glow {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.15); /* Softer start */
+    transform: scale(1);
+    opacity: 0.7; /* Start with slight fade for overall cell */
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 215, 0, 1), 0 0 80px rgba(255, 215, 0, 0.8); /* Stronger, wider glow */
+    transform: scale(1.2); /* Larger scale */
+    opacity: 1; /* Fully visible */
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.15); /* Back to softer start */
+    transform: scale(1);
+    opacity: 0.7; /* Back to slight fade */
+  }
+}
+
+@keyframes animated-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes blink-green {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(0, 255, 0, 0.4); }
+}
+
+@keyframes blink-red {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(255, 0, 0, 0.5); }
+}
+
+.svg-symbol {
+  width: 50px;
+  height: 50px;
+}
+
+.main-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+}
+
+#dragZoneContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 30px;
+  margin-left: 40px;
+  justify-content: space-between;
+  height: 560px;
+}
+
+#dragZoneContainer p {
+  width: 500px;
+}
+
+.drag-zone {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 40px;
+  height: 280px;
+  width: 200px;
+  justify-items: center;
+  align-items: center;
+}
+
+.draggable {
+  width: 60px;
+  height: 60px;
+  cursor: grab;
+  user-select: none;
+}
+
+.draggable .svg-symbol {
+  width: 60px;
+  height: 60px;
+}
+
+#resultado {
+  margin-top: 5px;
+  font-size: 18px;
+  background: rgba(0,0,0,0.5);
+  padding: 10px;
+  border-radius: 8px;
+  display: none;
+}
+
+#smallButtonsContainer {
+  display: flex;
+  gap: 16px;
+  margin-top: 40px;
+  justify-content: center;
+}
+
+#smallButtonsContainer button {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  color: white;
+  padding: 11px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+#smallButtonsContainer button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+#solveButtonContainer {
+  margin-top: 30px;
+}
+
+#solveButtonContainer button {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  padding: 13px 26px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 18px;
+  min-width: 150px;
+}
+
+#solveButtonContainer button:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.success {
+  animation: blink-green 1s 3;
+}
+
+.error {
+  animation: blink-red 0.5s 3;
+}
+
+.esquina-superior-derecha {
+  position: fixed;
+  top: 20px;
+  right: 40px;
+  z-index: 1001;
+  display: flex;
+  gap: 20px;
+}
+
+.btn-icono-esquina {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 22px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.btn-icono-esquina:hover {
+  background-position: 100% 100%;
+  transform: scale(1.1);
+}
+
+/* Estilos para el modal de perfil */
+#form-perfil {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 90%;
+  text-align: center; /* Centrar todo el contenido */
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.perfil-img-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+#perfil-img-preview {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+}
+
+.form-grupo {
+  width: 100%; /* Ocupar todo el ancho disponible */
+  max-width: 400px; /* Limitar el ancho del grupo al mismo que el input */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centrar los hijos */
+  margin: 0 auto; /* Centrar el grupo completo */
+}
+
+.form-grupo label {
+  font-weight: 500;
+  color: #f0f0f0;
+  width: 100%; /* Asegura que la etiqueta ocupe el ancho del input */
+  max-width: 400px; /* Limita el ancho de la etiqueta al mismo que el input */
+  text-align: left; /* Alinea el texto de la etiqueta a la izquierda */
+  display: block; /* Asegura que la etiqueta se comporte como un bloque */
+  margin: 0 auto; /* Centra la etiqueta dentro del form-grupo */
+  font-size: 14px; /* Reducir el tamaño de la fuente en 2px */
+}
+
+input[type="text"], input[type="email"] {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(82, 82, 82, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 12px 24px;
+  color: #ffffff;
+  width: 100%; /* Ocupar el 100% del ancho del .form-grupo */
+  max-width: 400px;
+  box-sizing: border-box;
+  display: block; /* Asegura que el input se comporte como un bloque */
+  margin: 0 auto; /* Centrar el input */
+}
+
+input[type="text"]::placeholder, input[type="email"]::placeholder {
+  color: #bbbbbb; /* Color de placeholder más oscuro */
+}
+
+/* Estilos para la tabla de ranking */
+#tabla-ranking {
+  width: 90%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+#tabla-ranking th, #tabla-ranking td {
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  text-align: left;
+}
+
+#tabla-ranking th {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+}
+
+#tabla-ranking tbody tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+#tabla-ranking tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+#score-container,
+#timer-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  animation: animated-gradient 3s ease-in-out infinite;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 20px;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+}
+
+.esquina-superior-izquierda,
+.esquina-superior-derecha {
+  position: fixed;
+  top: 20px;
+  display: flex;
+  gap: 20px;
+  z-index: 1001;
+}
+
+.esquina-superior-izquierda {
+  left: 40px;
+}
+
+.esquina-superior-derecha {
+  right: 40px;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px; /* Space between button and label */
+}
+
+.button-label {
+  color: white;
+  font-size: 9px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+}
+
+.btn-primary-gradient:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.modal-acciones {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+  width: 100%;
+  justify-content: center;
+}
+
+.btn-pista-primario, 
+.btn-pista-secundario {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+  border: none;
+  white-space: nowrap;
+  max-width: 200px; /* Adjust as needed for desired button size */
+}
+
+.btn-pista-primario:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.btn-pista-secundario {
+  backdrop-filter: blur(6px) saturate(180%);
+  background: rgba(255, 255, 255, 0.1);
+  color: #3b3b3b;
+}
+
+.btn-pista-secundario:hover {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 15px rgba(128, 0, 128, 0.6);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-overlay {
+  z-index: 2000;
+}
+
+.modal-contenido {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 20px 20px 5px 20px; /* Top, Right, Bottom, Left */
+  color: #1a1a1a;
+  width: 40vw; /* Ocupa el 40% del ancho de la ventana (20% más estrecho) */
+  height: 70vh; /* Ocupa el 70% del alto de la ventana */
+  max-width: 100%; /* Asegura que no sea demasiado grande en pantallas pequeñas */
+  max-height: 100%; /* Asegura que no sea demasiado grande en pantallas pequeñas */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: auto; /* Para manejar el desbordamiento de contenido */
+}
+
+.modal-contenido h2 {
+  color: white;
+  font-family: "Barriecito";
+  font-size: 24px;
+}
+
+#pista-explicacion, #feedback-pista {
+  text-align: center;
+  padding: 0 40px;
+}
+
+.modal-contenido img {
+  width: 60%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal .cerrar {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 30px;
+  color: white; /* Cambiado a blanco para asegurar visibilidad */
+  cursor: pointer;
+  z-index: 2002; /* Asegura que esté por encima de todo */
+}
+
+#btn-guardar-perfil {
+  margin-top: 10px;
+  width: 100%; /* Ocupar el 100% del ancho del .form-grupo */
+  max-width: 400px;
+  padding: 12px 24px; /* Ajustar el padding para que coincida con los inputs */
+  box-sizing: border-box; /* Asegurar que el padding se incluya en el ancho */
+}
+
+#feedback-puzzle1 {
+  display: none;
+  padding: 20px;
+  width: 350px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 20px;
+}
+
+#feedback-puzzle1.success {
+  background-color: rgba(146, 251, 146, 0.5);
+  margin-bottom: 20px;
+}
+
+#feedback-puzzle1.error {
+  background-color: rgba(255, 142, 142, 0.5);
+}
+
+#feedback-puzzle1.warning {
+  background-color: rgba(252, 206, 122, 0.5);
+}
+
+.hinted-cell {
+  background-color: rgba(173, 216, 230, 0.3);
+}
+
+/* Estilos para el modal del pergamino del Sudoku */
+#modal-pergamino-sudoku {
+  display: none; /* Oculto por defecto */
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.8);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#modal-pergamino-sudoku .modal-contenido {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 20px;
+  color: #1a1a1a;
+  width: 50vw; /* Ajustar el ancho para la imagen del pergamino */
+  max-width: 600px;
+  height: auto; /* Ajustar la altura automáticamente */
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+#modal-pergamino-sudoku img {
+  width: 90%; /* Ajustar el tamaño de la imagen del pergamino */
+  height: auto;
+  margin-bottom: 20px;
+}
+
+#modal-pergamino-sudoku button {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  padding: 13px 26px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 18px;
+  min-width: 150px;
+}
+
+#modal-pergamino-sudoku button:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+/* Estilos para las casillas doradas */
+.golden-cell {
+  background-image: url('img/oro.webp');
+  background-size: cover;
+  background-position: center;
+  animation: shine-glow 2.5s infinite alternate ease-in-out;
+}
+
+/* General Modal Styles */
+.modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Dark overlay */
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Ensure it's on top */
+}
+
+.modal-content {
+    background: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
+    box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
+    backdrop-filter: blur(7px); /* Glass effect */
+    -webkit-backdrop-filter: blur(7px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 20px;
+    color: #fff; /* White text for contrast */
+    width: 50vw;
+    max-width: 600px;
+    height: auto;
+    max-height: 90vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    text-align: center;
+}
+
+.modal-content h2 {
+    color: white;
+    font-family: "Barriecito";
+    font-size: 28px;
+    margin-bottom: 15px;
+
+}
+
+.modal-content p {
+    font-size: 18px;
+    margin-bottom: 20px;
+    font-weight: 400;
+}
+
+.modal-image {
+    max-width: 80%;
+    height: auto;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.continue-button{
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+}
+.continue-button:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.close-button {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    font-size: 35px;
+    color: white;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close-button:hover {
+    color: #ff00f0; /* Highlight on hover */
+}
+
+.continue-button {
+    @extend .btn-primary-gradient; /* Esto no es CSS estándar, es un placeholder */
+    padding: 15px 30px;
+    font-size: 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    margin-top: 10px;
+}
+
+.continue-button:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}

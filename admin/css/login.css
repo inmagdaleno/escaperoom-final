@@ -1,0 +1,214 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.pantalla-login {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-image: url('../../img/atardecer.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 40px;
+    color: #1a1a1a;
+    width: 500px;
+    margin: auto;
+}
+        
+h1, h2 {
+    text-align: center;
+    background-image: linear-gradient(45deg, #ff00f0, #00ffbf);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 30px;
+}
+        
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+        
+input[type="email"], input[type="password"] {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px 0 rgba(31, 38, 135, 0.2);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 12px;
+    font-size: 16px;
+    color: #1a1a1a;
+    transition: all 0.3s;
+}
+        
+input[type="email"]:hover, input[type="password"]:hover {
+    outline: none;
+    border: 1px solid #cf01c2;
+    box-shadow: 0 0 5px #cf01c2;
+}
+        
+input[type="submit"] {
+    backdrop-filter: blur(6px) saturate(180%);
+    background: rgba(255, 255, 255, 0.1);
+    color: #3b3b3b;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+    font-size: 16px;
+}
+        
+input[type="submit"]:hover {
+    background: linear-gradient(45deg, #ff00f0, #00ffbf);
+    transform: translateY(-2px);
+    color: #e7fef6;
+}
+        
+.olvido-password {
+    text-align: center;
+    margin: 25px 0;
+}
+        
+.olvido-password a {
+    margin-top: 30px;
+    color: #3a3a3a;
+    text-decoration: none;
+    font-size: 14px;
+    cursor: pointer;
+}
+        
+.olvido-password a:hover {
+    text-decoration: underline;
+}
+        
+.crear-cuenta {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #3a3a3a;
+}
+        
+.crear-cuenta p {
+    margin: 0 0 10px 0;
+    color: #3a3a3a;
+    font-size: 14px;
+}
+        
+.crear-cuenta a {
+    display: inline-block;
+    backdrop-filter: blur(6px) saturate(180%);
+    background: rgba(255, 255, 255, 0.1);
+    color: #3b3b3b;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+    font-size: 16px;
+    margin-top: 20px;
+}
+        
+.crear-cuenta a:hover {
+    background: linear-gradient(45deg, #ff00f0, #00ffbf);
+    transform: translateY(-2px);
+    color: #e7fef6;
+}
+        
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 15px;
+    text-align: center;
+    border: 1px solid #f5c6cb;
+}
+        
+
+/* Modal */
+
+.abrir-modal-registro,
+.abrir-modal-recuperar{
+    cursor: pointer;
+    color: #007bff;
+}
+.modal{
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    align-items: center;
+    justify-content: center;
+}
+.modal-contenido{
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    padding: 40px;
+    color: black;
+    width: 80%;
+    max-width: 600px;
+    margin: 0 auto;
+}
+.modal-contenido h2{
+    text-align: center;
+}
+.modal-contenido span{
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+.modal-contenido span:hover,
+.modal-contenido span:focus{
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Restablecer password */
+
+.mensaje{
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    background-color: #e7fef6;
+    border: 1px solid #2d6f51;
+}
+
+.volver{
+    text-decoration: none;
+}

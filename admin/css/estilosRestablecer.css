@@ -1,0 +1,35 @@
+/* Mensajes de error */
+.error-message {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* Mensaje de éxito */
+.success-message {
+    color: #27ae60;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+/* Borde rojo en campos inválidos */
+.error-border {
+    border-color: #e74c3c !important;
+}
+
+/* Borde verde en campos válidos */
+.success-border {
+    border-color: #27ae60 !important;
+}
+
+/* Botón toggle password */
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 16px;
+}
