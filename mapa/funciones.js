@@ -1,615 +1,879 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Manejo de transición de escena jungla a mapa
+  // Elementos del DOM
   const escenaJungla = document.getElementById("escena-jungla");
   const escenaMapa = document.getElementById("escena-mapa");
   const btnIrMapa = document.getElementById("ir-mapa");
+  const piecesContainer = document.getElementById("pieces");
+  const boardContainer = document.getElementById("board");
+  const btnIrAdelante = document.getElementById("btn-ir-adelante");
+  const btnVolverAtras = document.getElementById("btn-volver-atras");
+  const btnVolverAtrasJungla = document.getElementById("btn-volver-atras-jungla");
+  
+  // Estado del juego
+  let gameMode = localStorage.getItem('gameMode') || 'score';
+  let score = parseInt(localStorage.getItem('score')) || 400;
+  let draggedPiece = null;
 
-  // Inicializar mostrando la escena jungla primero
+  // Inicializar escenas
   if (escenaJungla && escenaMapa) {
-    escenaJungla.classList.add("visible");
-    escenaMapa.classList.remove("visible");
+    // Verificar si venimos del portal y debemos mostrar escena-mapa
+    const mapaEscena = localStorage.getItem('mapaEscena');
+    
+    if (mapaEscena === 'escena-mapa') {
+      // Mostrar escena-mapa directamente
+      escenaJungla.classList.remove("visible");
+      escenaMapa.classList.add("visible");
+      // Limpiar el localStorage después de usar
+      localStorage.removeItem('mapaEscena');
+    } else {
+      // Mostrar escena-jungla por defecto
+      escenaJungla.classList.add("visible");
+      escenaMapa.classList.remove("visible");
+    }
   }
 
-  // Evento para pasar de jungla a mapa
+  // Configuración del puzzle (6x6 = 36 piezas)
+  const PUZZLE_SIZE = 6;
+  const PIECE_SIZE = 75;
+  const IMAGE_SIZE = 450; // 6 * 75 = 450px
+
+  // Función para crear el puzzle
+  function createPuzzle() {
+    console.log("Creando puzzle de 36 piezas...");
+    
+    // Verificar que los contenedores existen
+    if (!piecesContainer || !boardContainer) {
+      console.error("Contenedores no encontrados");
+      return;
+    }
+    
+    // Limpiar contenedores
+    piecesContainer.innerHTML = '';
+    boardContainer.innerHTML = '';
+
+    // Configurar el área de piezas para recibir drops
+    piecesContainer.addEventListener('dragover', handleDragOver);
+    piecesContainer.addEventListener('drop', handleDrop);
+
+    // Crear array de posiciones
+    const positions = [];
+    for (let row = 0; row < PUZZLE_SIZE; row++) {
+      for (let col = 0; col < PUZZLE_SIZE; col++) {
+        positions.push({ row, col });
+      }
+    }
+
+    // Mezclar posiciones para las piezas sueltas
+    const shuffledPositions = [...positions].sort(() => Math.random() - 0.5);
+
+    // Crear piezas sueltas con distribución y rotación aleatoria
+    shuffledPositions.forEach((pos, index) => {
+      const piece = document.createElement('div');
+      piece.className = 'piece';
+      piece.draggable = true;
+      piece.dataset.row = pos.row;
+      piece.dataset.col = pos.col;
+      
+      // Posición de la imagen de fondo
+      const bgX = -pos.col * PIECE_SIZE;
+      const bgY = -pos.row * PIECE_SIZE;
+      piece.style.backgroundPosition = `${bgX}px ${bgY}px`;
+      
+      // Rotación aleatoria irregular (ángulos más naturales)
+      const minRotation = -45;
+      const maxRotation = 45;
+      const randomRotation = Math.floor(Math.random() * (maxRotation - minRotation + 1)) + minRotation;
+      piece.dataset.rotation = randomRotation;
+      
+      // Aplicar la rotación inicial
+      piece.style.transform = `rotate(${randomRotation}deg)`;
+      
+      // Posición aleatoria en el contenedor (más distribuida)
+      const containerWidth = 480; // Ancho disponible (500px - padding)
+      const containerHeight = 480; // Alto disponible (500px - padding)
+      
+      // Crear zonas de distribución para evitar aglomeraciones
+      const zones = [
+        { x: 0, y: 0, w: containerWidth/2, h: containerHeight/2 },           // Esquina superior izquierda
+        { x: containerWidth/2, y: 0, w: containerWidth/2, h: containerHeight/2 },      // Esquina superior derecha
+        { x: 0, y: containerHeight/2, w: containerWidth/2, h: containerHeight/2 },     // Esquina inferior izquierda
+        { x: containerWidth/2, y: containerHeight/2, w: containerWidth/2, h: containerHeight/2 } // Esquina inferior derecha
+      ];
+      
+      // Seleccionar zona aleatoria
+      const zone = zones[Math.floor(Math.random() * zones.length)];
+      const randomX = zone.x + Math.random() * (zone.w - PIECE_SIZE);
+      const randomY = zone.y + Math.random() * (zone.h - PIECE_SIZE);
+      
+      piece.style.left = randomX + 'px';
+      piece.style.top = randomY + 'px';
+      
+      // Event listeners
+      piece.addEventListener('dragstart', handleDragStart);
+      piece.addEventListener('dragend', handleDragEnd);
+      
+      piecesContainer.appendChild(piece);
+    });
+
+    // Crear slots del tablero
+    positions.forEach(pos => {
+      const slot = document.createElement('div');
+      slot.className = 'slot';
+      slot.dataset.row = pos.row;
+      slot.dataset.col = pos.col;
+      
+      // Event listeners
+      slot.addEventListener('dragover', handleDragOver);
+      slot.addEventListener('drop', handleDrop);
+      slot.addEventListener('dragenter', handleDragEnter);
+      slot.addEventListener('dragleave', handleDragLeave);
+      
+      boardContainer.appendChild(slot);
+    });
+
+    console.log(`Puzzle de 6x6 creado: ${positions.length} piezas y slots`);
+  }
+
+  // Funciones de drag and drop
+  function handleDragStart(e) {
+    draggedPiece = e.target;
+    e.target.style.opacity = '0.5';
+    // Cambiar cursor a grabbing durante el arrastre
+    e.target.style.cursor = 'grabbing';
+    
+    // Auto-corregir rotación al coger la pieza
+    e.target.dataset.rotation = 0;
+    e.target.style.transform = 'rotate(0deg)';
+    
+    // Limpiar el estado de la celda origen si la pieza viene del tablero
+    if (draggedPiece.parentNode.classList.contains('slot')) {
+      draggedPiece.parentNode.classList.remove('incorrect-piece', 'correct', 'incorrect');
+    }
+  }
+
+  function handleDragEnd(e) {
+    e.target.style.opacity = '1';
+    // Restaurar cursor a grab
+    e.target.style.cursor = 'grab';
+    draggedPiece = null;
+  }
+
+  function handleDragOver(e) {
+    e.preventDefault();
+  }
+
+  function handleDragEnter(e) {
+    e.preventDefault();
+    if (e.target.classList.contains('slot') && !e.target.hasChildNodes()) {
+      e.target.classList.add('drag-over');
+    }
+  }
+
+  function handleDragLeave(e) {
+    if (e.target.classList.contains('slot')) {
+      e.target.classList.remove('drag-over');
+    }
+  }
+
+  function handleDrop(e) {
+    e.preventDefault();
+    let slot = e.target;
+    
+    // Si se suelta en una pieza que ya está en una celda, obtener la celda padre
+    if (slot.classList.contains('piece') && slot.parentNode.classList.contains('slot')) {
+      slot = slot.parentNode;
+    }
+    
+    // Si se suelta en el área de piezas, devolver la pieza allí
+    if (slot.id === 'pieces' || slot.closest('#pieces')) {
+      returnPieceToArea(draggedPiece);
+      return;
+    }
+    
+    if (!slot.classList.contains('slot')) {
+      return;
+    }
+    
+    // Limpiar el estado de la celda origen antes de mover la pieza
+    if (draggedPiece.parentNode.classList.contains('slot')) {
+      draggedPiece.parentNode.classList.remove('incorrect-piece', 'correct', 'incorrect', 'correct-gold-hint');
+    }
+    
+    // Si la celda ya tiene una pieza, intercambiarlas
+    if (slot.hasChildNodes()) {
+      const existingPiece = slot.firstElementChild;
+      if (existingPiece.classList.contains('piece')) {
+        // Limpiar estado de la celda destino
+        slot.classList.remove('incorrect-piece', 'correct', 'incorrect');
+        
+        // Intercambiar las piezas
+        const draggedParent = draggedPiece.parentNode;
+        if (draggedParent.classList.contains('slot')) {
+          draggedParent.appendChild(existingPiece);
+          existingPiece.style.position = 'static';
+          existingPiece.style.left = '';
+          existingPiece.style.top = '';
+          // Mantener cursor de mano para piezas en el tablero
+          existingPiece.style.cursor = 'grab';
+          
+          // Verificar si la pieza intercambiada está en posición correcta
+          const existingPieceRow = parseInt(existingPiece.dataset.row);
+          const existingPieceCol = parseInt(existingPiece.dataset.col);
+          const existingSlotRow = parseInt(draggedParent.dataset.row);
+          const existingSlotCol = parseInt(draggedParent.dataset.col);
+          
+          if (existingPieceRow !== existingSlotRow || existingPieceCol !== existingSlotCol) {
+            draggedParent.classList.add('incorrect-piece');
+          }
+        } else {
+          returnPieceToArea(existingPiece);
+        }
+      }
+    }
+    
+    // Limpiar cualquier estado previo de la celda destino
+    slot.classList.remove('drag-over', 'correct', 'incorrect', 'incorrect-piece', 'correct-gold-hint');
+    
+    // Mover la pieza arrastrada a la nueva celda
+    slot.appendChild(draggedPiece);
+    draggedPiece.style.position = 'static';
+    draggedPiece.style.left = '';
+    draggedPiece.style.top = '';
+    // Cambiar cursor para indicar que se puede mover
+    draggedPiece.style.cursor = 'grab';
+    
+    // Verificar si es la posición correcta (solo posición, se auto-corrige la rotación)
+    const pieceRow = parseInt(draggedPiece.dataset.row);
+    const pieceCol = parseInt(draggedPiece.dataset.col);
+    const slotRow = parseInt(slot.dataset.row);
+    const slotCol = parseInt(slot.dataset.col);
+    
+    const isCorrectPosition = pieceRow === slotRow && pieceCol === slotCol;
+    
+    if (isCorrectPosition) {
+      // Posición correcta - mostrar feedback positivo y aplicar efecto dorado sutil
+      setTimeout(() => {
+        slot.classList.add('correct');
+        // Añadir efecto dorado sutil para piezas en posición correcta
+        slot.classList.add('correct-gold-hint');
+        setTimeout(() => {
+          slot.classList.remove('correct');
+        }, 600);
+      }, 50);
+      
+      // Actualizar puntuación
+      if (gameMode === 'score') {
+        score += 10;
+        updateScore();
+      }
+      
+      // Verificar si el puzzle está completo
+      checkPuzzleComplete();
+      
+    } else {
+      // Posición incorrecta - mostrar feedback negativo y mantener borde rojo
+      slot.classList.add('incorrect-piece');
+      setTimeout(() => {
+        slot.classList.add('incorrect');
+        setTimeout(() => {
+          slot.classList.remove('incorrect');
+        }, 600);
+      }, 50);
+      
+      if (gameMode === 'score') {
+        score = Math.max(0, score - 5);
+        updateScore();
+      }
+    }
+  }
+
+  function returnPieceToArea(piece) {
+    const piecesContainer = document.getElementById('pieces');
+    
+    // Limpiar estilos de posición
+    piece.style.position = 'absolute';
+    piece.style.left = '';
+    piece.style.top = '';
+    // Restaurar cursor original para piezas en el área
+    piece.style.cursor = 'grab';
+    
+    // Remover clases de estado si las tiene
+    if (piece.parentNode.classList.contains('slot')) {
+      piece.parentNode.classList.remove('correct', 'incorrect', 'incorrect-piece', 'correct-gold-hint');
+    }
+    
+    // Generar nueva posición aleatoria en el área de piezas
+    const containerRect = piecesContainer.getBoundingClientRect();
+    const maxX = containerRect.width - 75; // 75px es el ancho de la pieza
+    const maxY = containerRect.height - 75; // 75px es el alto de la pieza
+    
+    const randomX = Math.random() * maxX;
+    const randomY = Math.random() * maxY;
+    
+    piece.style.left = randomX + 'px';
+    piece.style.top = randomY + 'px';
+    
+    // Generar nueva rotación aleatoria irregular cuando regresa al área
+    const minRotation = -45;
+    const maxRotation = 45;
+    const randomRotation = Math.floor(Math.random() * (maxRotation - minRotation + 1)) + minRotation;
+    piece.dataset.rotation = randomRotation;
+    piece.style.transform = `rotate(${randomRotation}deg)`;
+    
+    // Mover la pieza al contenedor de piezas
+    piecesContainer.appendChild(piece);
+  }
+
+  function updateScore() {
+    const scoreDisplay = document.getElementById("score");
+    if (scoreDisplay) {
+      scoreDisplay.textContent = score;
+      localStorage.setItem('score', score);
+    }
+  }
+
+  function checkPuzzleComplete() {
+    const slots = boardContainer.querySelectorAll('.slot');
+    let correctPieces = 0;
+    
+    slots.forEach(slot => {
+      if (slot.hasChildNodes()) {
+        const piece = slot.firstElementChild;
+        if (piece.classList.contains('piece')) {
+          const pieceRow = parseInt(piece.dataset.row);
+          const pieceCol = parseInt(piece.dataset.col);
+          const slotRow = parseInt(slot.dataset.row);
+          const slotCol = parseInt(slot.dataset.col);
+          
+          // La pieza es correcta si está en la posición correcta (se auto-corrige al cogerla)
+          const isCorrectPosition = pieceRow === slotRow && pieceCol === slotCol;
+          
+          if (isCorrectPosition) {
+            correctPieces++;
+          }
+        }
+      }
+    });
+    
+    if (correctPieces === slots.length) {
+      console.log("¡Puzzle completado!");
+      showCompletionAnimation();
+    }
+  }
+
+  // Alias para compatibilidad
+  function checkPuzzleCompletion() {
+    checkPuzzleComplete();
+  }
+
+  function showCompletionAnimation() {
+    const mainTitle = document.getElementById("main-title");
+    const subtitle = document.getElementById("subtitle");
+    const instructions = document.querySelector(".puzzle-instructions");
+    const puzzleWrapper = document.querySelector(".puzzle-wrapper");
+    const boardContainer = document.querySelector(".board-container");
+    
+    // Añadir clase de completado para activar animaciones del tablero
+    document.body.classList.add('puzzle-completed');
+    
+    // Aplicar animación dorada a todas las piezas en posición correcta
+    const slots = boardContainer.querySelectorAll('.slot');
+    slots.forEach((slot, index) => {
+      if (slot.hasChildNodes()) {
+        const piece = slot.firstElementChild;
+        if (piece && piece.classList.contains('piece')) {
+          // Añadir clase de oro a la pieza con un pequeño delay escalonado
+          setTimeout(() => {
+            slot.classList.add('final-gold-piece');
+          }, index * 50); // 50ms de delay entre cada pieza para efecto cascada
+        }
+      }
+    });
+    
+    // Crear partículas doradas
+    createGoldParticles();
+    
+    // Animación de celebración del tablero (4 segundos para coincidir con la animación dorada)
+    setTimeout(() => {
+      // Comenzar desvanecimiento de elementos
+      [mainTitle, subtitle, instructions].forEach(el => {
+        if (el) {
+          el.classList.add('fade-out-smooth');
+        }
+      });
+      
+      // Marcar body para transición de fondo
+      document.body.classList.add('transitioning');
+      
+      // Desvanecimiento del tablero después de la animación
+      setTimeout(() => {
+        if (puzzleWrapper) {
+          puzzleWrapper.classList.add('fade-out-smooth');
+        }
+        
+        // Cambiar fondo después de que empiece el desvanecimiento
+        setTimeout(() => {
+          document.body.classList.add('fondo-piedra2');
+        }, 1000);
+        
+        // Crear botón examinar después del desvanecimiento completo
+        setTimeout(() => {
+          const btnExaminar = document.createElement('button');
+          btnExaminar.id = 'btn-examinar-mapa';
+          btnExaminar.textContent = 'Examinar Mapa';
+          btnExaminar.className = 'btn-pista-primario btn-primary-gradient';
+          btnExaminar.style.opacity = '0';
+          btnExaminar.style.transition = 'opacity 1.5s ease';
+          document.body.appendChild(btnExaminar);
+          
+          // Mostrar botón con fade in
+          setTimeout(() => {
+            btnExaminar.style.opacity = '1';
+          }, 100);
+          
+          // Event listener para el botón
+          btnExaminar.addEventListener('click', function() {
+            document.getElementById('modal-mapa').style.display = 'flex';
+            hideExaminarMapaButton();
+          });
+        }, 3500); // Esperar a que termine el desvanecimiento
+        
+      }, 1000); // Esperar 1 segundo después de la animación del tablero
+    }, 4000); // Esperar 4 segundos para la animación de celebración dorada
+  }
+
+  // Función para crear partículas doradas
+  function createGoldParticles() {
+    const puzzleWrapper = document.querySelector('.puzzle-wrapper');
+    if (!puzzleWrapper) return;
+    
+    for (let i = 0; i < 20; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'gold-particle';
+      
+      // Posición aleatoria alrededor del tablero
+      const x = Math.random() * puzzleWrapper.offsetWidth;
+      const y = Math.random() * puzzleWrapper.offsetHeight;
+      
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      
+      puzzleWrapper.appendChild(particle);
+      
+      // Eliminar partícula después de la animación
+      setTimeout(() => {
+        if (particle.parentNode) {
+          particle.parentNode.removeChild(particle);
+        }
+      }, 3000);
+    }
+  }
+
+  // Event listener para ir al mapa
   if (btnIrMapa) {
     btnIrMapa.addEventListener("click", () => {
       escenaJungla.classList.remove("visible");
       setTimeout(() => {
         escenaMapa.classList.add("visible");
+        // Desplazar hacia arriba
+        window.scrollTo(0, 0);
+        setTimeout(() => {
+          createPuzzle();
+        }, 300);
       }, 300);
     });
   }
 
-  const piecesContainer = document.getElementById("pieces");
-  const boardContainer = document.getElementById("board");
-  const btnIrAdelante = document.getElementById("btn-ir-adelante");
-  const btnVolverAtras = document.getElementById("btn-volver-atras");
-  const groupIrAdelante = document.getElementById("group-ir-adelante");
+  // Observer para detectar cuando la escena del mapa se vuelve visible
+  if (escenaMapa) {
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          if (escenaMapa.classList.contains('visible')) {
+            setTimeout(() => {
+              if (piecesContainer && boardContainer && piecesContainer.children.length === 0) {
+                createPuzzle();
+              }
+            }, 100);
+          }
+        }
+      });
+    });
+    
+    observer.observe(escenaMapa, { attributes: true });
+  }
 
-  // Elementos de la interfaz
-  const scoreDisplay = document.getElementById("score");
-  const timerDisplay = document.getElementById("timer");
-
-  // Estado del juego (recuperar de localStorage)
-  let gameMode = localStorage.getItem('gameMode') || 'score';
-  let score = parseInt(localStorage.getItem('score')) || 400;
-  let timeLeft = 0; // Ahora manejado por el timer global
-  
-  // Actualizar displays de timer si es necesario
-  if (gameMode === 'time' && window.globalTimer) {
-    // Asegurar que el timer global está activo
-    if (!window.globalTimer.isActive()) {
-      const hasExistingTimer = localStorage.getItem('endTime');
-      if (hasExistingTimer) {
-        window.globalTimer.resumeTimer();
+  // Navegación
+  if (btnVolverAtras) {
+    btnVolverAtras.addEventListener("click", () => {
+      // Simplemente navegar a la escena anterior (escena-jungla en el mismo archivo)
+      if (escenaMapa && escenaJungla) {
+        escenaMapa.classList.remove("visible");
+        escenaJungla.classList.add("visible");
+        // Ocultar el botón examinar mapa al volver a la jungla
+        hideExaminarMapaButton();
       }
-    }
-    timeLeft = window.globalTimer.getTimeLeft();
+    });
   }
 
-  // Asegurar que el game-over-overlay esté oculto al iniciar
-  const gameOverOverlay = document.getElementById('game-over-overlay');
-  if (gameOverOverlay) {
-    gameOverOverlay.classList.add('oculto');
-    gameOverOverlay.style.display = 'none';
+  // Navegación desde escena-jungla
+  if (btnVolverAtrasJungla) {
+    btnVolverAtrasJungla.addEventListener("click", () => {
+      // Ocultar el botón examinar mapa antes de salir
+      hideExaminarMapaButton();
+      // Volver al sudoku (pantalla inmediatamente anterior)
+      window.location.href = "../sudoku/sudoku.php";
+    });
   }
 
-  // Inicializar displays
+  if (btnIrAdelante) {
+    btnIrAdelante.addEventListener('click', () => {
+      // Simular puzzle completado para ver las animaciones
+      console.log("Simulando puzzle completado para mostrar animaciones...");
+      
+      // Asegurar que estamos en la escena del mapa
+      if (escenaMapa && !escenaMapa.classList.contains('visible')) {
+        // Si no estamos en la escena del mapa, ir primero
+        escenaJungla.classList.remove("visible");
+        escenaMapa.classList.add("visible");
+        
+        // Crear el puzzle y luego activar animaciones
+        setTimeout(() => {
+          createPuzzle();
+          setTimeout(() => {
+            showCompletionAnimation();
+          }, 1000); // Esperar un poco para que se cree el puzzle
+        }, 500);
+      } else {
+        // Si ya estamos en la escena del mapa, activar animaciones directamente
+        showCompletionAnimation();
+      }
+    });
+  }
+
+  // Inicializar UI
   if (gameMode === 'score') {
     document.getElementById("score-container").style.display = "block";
     document.getElementById("timer-container").style.display = "none";
-    if (scoreDisplay) scoreDisplay.textContent = score;
+    updateScore();
   } else if (gameMode === 'time') {
     document.getElementById("score-container").style.display = "none";
     document.getElementById("timer-container").style.display = "block";
-    startTimer();
+    
+    // El timer global ya debería estar funcionando, no hacer nada más
+    // Solo asegurar que el display esté actualizado
+    if (window.globalTimer) {
+      const currentTime = window.globalTimer.getTimeLeft();
+      if (currentTime > 0) {
+        window.updateAllTimerDisplays(currentTime);
+      }
+    }
   }
 
-  // Modales
+  // Modales y otros eventos
+  
+  // Funciones para manejar la visibilidad del botón examinar mapa
+  function hideExaminarMapaButton() {
+    const btnExaminar = document.getElementById('btn-examinar-mapa');
+    if (btnExaminar) {
+      btnExaminar.style.display = 'none';
+    }
+  }
+  
+  function showExaminarMapaButton() {
+    const btnExaminar = document.getElementById('btn-examinar-mapa');
+    if (btnExaminar) {
+      btnExaminar.style.display = 'block';
+    }
+  }
+  
   const modalPerfil = document.getElementById('modal-perfil');
+  const btnPerfil = document.getElementById('btn-perfil');
   const btnRanking = document.getElementById('btn-ranking');
   const modalRanking = document.getElementById('modal-ranking');
-  const tbody = document.getElementById('ranking-body');
+  const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
 
-  function cargarRanking() {
-    fetch('/controller/obtenerRanking.php')
-      .then(res => res.json())
-      .then(data => {
-        tbody.innerHTML = '';
-        data.forEach((jugador, i) => {
-          tbody.innerHTML += `<tr>
-            <td>${i+1}</td>
-            <td>${jugador.nombre}</td>
-            <td>${jugador.puntuacion}</td>
-          </tr>`;
-        });
-      });
+  if (btnPerfil && modalPerfil) {
+    btnPerfil.addEventListener('click', () => {
+      modalPerfil.style.display = 'flex';
+      cargarPerfil();
+      hideExaminarMapaButton();
+    });
   }
 
   if (btnRanking && modalRanking) {
     btnRanking.addEventListener('click', () => {
       cargarRanking();
-      modalRanking.classList.add('visible');
+      modalRanking.style.display = 'flex';
+      hideExaminarMapaButton();
     });
   }
 
-  // --- BOTÓN CERRAR SESIÓN ---
-  const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
   if (btnCerrarSesion) {
     btnCerrarSesion.addEventListener('click', () => {
       if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        // Limpiar datos del juego
-        localStorage.removeItem('gameMode');
-        localStorage.removeItem('score');
-        localStorage.removeItem('timeLeft');
-        localStorage.removeItem('endTime');
-        localStorage.removeItem('gameStartTime');
-        
-        // Redirigir a login
+        localStorage.clear();
         window.location.href = '../admin/login.php';
       }
     });
   }
 
-  // --- INICIALIZACIÓN DEL TIMER ---
-  function startTimer() {
-    if (window.globalTimer) {
-      // Si ya existe un timer global, usarlo
-      const hasExistingTimer = localStorage.getItem('endTime');
-      if (hasExistingTimer) {
-        window.globalTimer.resumeTimer();
-      } else {
-        // Iniciar nuevo timer de 30 minutos
-        window.globalTimer.startNewTimer(30 * 60 * 1000);
-      }
-      
-      // Actualizar display del timer
-      window.globalTimer.onUpdate((timeLeft) => {
-        const timerDisplay = document.getElementById("timer");
-        if (timerDisplay) {
-          const minutes = Math.floor(timeLeft / 60);
-          const seconds = timeLeft % 60;
-          timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  function cargarRanking() {
+    fetch('../controller/obtenerRanking.php')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Datos del ranking:', data);
+        
+        // Cargar ranking por puntos
+        const tbodyPuntos = document.querySelector('#tabla-ranking-puntos tbody');
+        if (tbodyPuntos) {
+          tbodyPuntos.innerHTML = '';
+          
+          if (data.success && data.ranking && data.ranking.score && data.ranking.score.length > 0) {
+            data.ranking.score.forEach((jugador, i) => {
+              tbodyPuntos.innerHTML += `<tr>
+                <td>${i+1}</td>
+                <td>${jugador.jugador}</td>
+                <td>${jugador.valor} puntos</td>
+              </tr>`;
+            });
+          } else {
+            tbodyPuntos.innerHTML = '<tr><td colspan="3">No hay partidas por puntos</td></tr>';
+          }
         }
+        
+        // Cargar ranking por tiempo
+        const tbodyTiempo = document.querySelector('#tabla-ranking-tiempo tbody');
+        if (tbodyTiempo) {
+          tbodyTiempo.innerHTML = '';
+          
+          if (data.success && data.ranking && data.ranking.time && data.ranking.time.length > 0) {
+            data.ranking.time.forEach((jugador, i) => {
+              const minutos = Math.floor(jugador.valor / 60);
+              const segundos = jugador.valor % 60;
+              tbodyTiempo.innerHTML += `<tr>
+                <td>${i+1}</td>
+                <td>${jugador.jugador}</td>
+                <td>${minutos}:${segundos.toString().padStart(2, '0')}</td>
+              </tr>`;
+            });
+          } else {
+            tbodyTiempo.innerHTML = '<tr><td colspan="3">No hay partidas por tiempo</td></tr>';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error cargando ranking:', error);
+        const tbodyPuntos = document.querySelector('#tabla-ranking-puntos tbody');
+        const tbodyTiempo = document.querySelector('#tabla-ranking-tiempo tbody');
+        if (tbodyPuntos) tbodyPuntos.innerHTML = '<tr><td colspan="3">Error al cargar ranking</td></tr>';
+        if (tbodyTiempo) tbodyTiempo.innerHTML = '<tr><td colspan="3">Error al cargar ranking</td></tr>';
       });
-      
-      // Manejar cuando se acaba el tiempo
-      window.globalTimer.onTimeUp(() => {
-        showGameOver();
-      });
+  }
+
+  // Función para alternar entre rankings
+  window.showRanking = function(tipo) {
+    const btnPuntos = document.getElementById('btn-puntos');
+    const btnTiempo = document.getElementById('btn-tiempo');
+    const rankingPuntos = document.getElementById('ranking-puntos');
+    const rankingTiempo = document.getElementById('ranking-tiempo');
+    
+    if (tipo === 'puntos') {
+      btnPuntos.classList.add('active');
+      btnTiempo.classList.remove('active');
+      rankingPuntos.classList.add('active');
+      rankingTiempo.classList.remove('active');
+    } else {
+      btnTiempo.classList.add('active');
+      btnPuntos.classList.remove('active');
+      rankingTiempo.classList.add('active');
+      rankingPuntos.classList.remove('active');
     }
-  }
-});
+  };
 
-  // --- NAVEGACIÓN ---
-  // Botón "Volver Atrás"
-  if (btnVolverAtras) {
-    btnVolverAtras.addEventListener("click", () => {
-      // Marcar que se está regresando desde mapa para aplicar penalización
-      localStorage.setItem('regresoDesdeModulo', 'mapa');
-      localStorage.setItem('tiempoRegreso', Date.now());
-      // Volver al juego principal - escena jungla
-      window.location.href = "../juego.php#escena-jungla";
-    });
-  }
+  // Cerrar modales
+  document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('cerrar')) {
+      const modal = e.target.closest('.modal-overlay');
+      if (modal) {
+        modal.style.display = 'none';
+        showExaminarMapaButton();
+      }
+    }
+  });
 
-  // Botón "Ir Adelante" 
-  if (btnIrAdelante) {
-    btnIrAdelante.addEventListener('click', () => {
-      // Ir directamente a la escena final sin resolver el mapa
+  // Modal del mapa completado
+  const btnContinuarMapa = document.getElementById('btn-continuar-mapa');
+  if (btnContinuarMapa) {
+    btnContinuarMapa.addEventListener('click', () => {
+      // Guardar que venimos de escena-mapa para la navegación de vuelta
+      localStorage.setItem('portalOrigenEscena', 'escena-mapa');
       window.location.href = "../Final/portal.php";
     });
   }
 
-  const cols = 6;
-  const rows = 6;
-
-  const pieceWidth = 500 / cols;
-  const pieceHeight = 500 / rows;
-
-  const positions = [];
-
-  // Generar posiciones (x, y) de cada pieza
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      positions.push({ x, y });
-    }
-  }
-
-  // Mezclar posiciones para las piezas sueltas
-  const shuffledPositions = positions
-    .slice()
-    .sort(() => Math.random() - 0.5);
-
-  // Crear piezas sueltas
-  shuffledPositions.forEach(pos => {
-    const piece = document.createElement("div");
-    piece.classList.add("piece");
-    piece.setAttribute("draggable", true);
-    piece.dataset.pos = `${pos.x}-${pos.y}`;
-
-    piece.style.backgroundImage = "url('img/mapa.webp')";
-    piece.style.backgroundPosition = `-${pos.x * pieceWidth}px -${pos.y * pieceHeight}px`;
-
-    randomizePiecePosition(piece, piecesContainer.offsetWidth, piecesContainer.offsetHeight);
-
-    piece.addEventListener("dragstart", dragStart);
-
-    piecesContainer.appendChild(piece);
-  });
-
-  // Crear slots en el tablero
-  positions.forEach(pos => {
-    const slot = document.createElement("div");
-    slot.classList.add("slot");
-    slot.dataset.pos = `${pos.x}-${pos.y}`;
-
-    slot.addEventListener("dragover", dragOver);
-    slot.addEventListener("drop", drop);
-
-    boardContainer.appendChild(slot);
-  });
-
-  // Add dragover and drop listeners to piecesContainer
-  piecesContainer.addEventListener("dragover", dragOver);
-  piecesContainer.addEventListener("drop", drop);
-
-  // --- INICIALIZACIÓN DEL JUEGO (para score/timer) ---
-  function inicializarJuegoMapa() {
-    if (gameMode === 'score') {
-      if (scoreDisplay) scoreDisplay.textContent = score;
-      document.getElementById("score-container").style.display = "block";
-      document.getElementById("timer-container").style.display = "none";
-    } else if (gameMode === 'time') {
-      updateTimerDisplay();
-      document.getElementById("score-container").style.display = "none";
-      document.getElementById("timer-container").style.display = "block";
-      startTimer();
-    }
-    // Ocultar modales al inicio
-    if (modalPerfil) modalPerfil.style.display = 'none';
-    if (modalRanking) modalRanking.style.display = 'none';
-  }
-
-  // --- LÓGICA DEL TEMPORIZADOR ---
-  function startTimer() {
-    const endTime = localStorage.getItem('endTime');
-    if (!endTime) {
-      // Si no hay endTime, crear uno nuevo
-      const newEndTime = Date.now() + timeLeft * 1000;
-      localStorage.setItem('endTime', newEndTime);
-    }
-
-    timerInterval = setInterval(() => {
-      const endTime = localStorage.getItem('endTime');
-      const remainingTime = endTime - Date.now();
-      if (remainingTime <= 0) {
-        clearInterval(timerInterval);
-        const gameOverOverlay = document.getElementById('game-over-overlay');
-        gameOverOverlay.classList.remove('oculto');
-        gameOverOverlay.style.display = 'flex';
-        document.getElementById('game-over-video').play();
-        return;
+  // Game Over - botón restart
+  const btnRestart = document.getElementById('btn-restart');
+  if (btnRestart) {
+    btnRestart.addEventListener('click', () => {
+      if (window.globalTimer) {
+        window.globalTimer.clear();
       }
-      timeLeft = Math.ceil(remainingTime / 1000);
-      localStorage.setItem('timeLeft', timeLeft); // Mantener sincronizado
-      updateTimerDisplay();
-    }, 1000);
+      // Limpiar localStorage del juego
+      localStorage.removeItem('gameMode');
+      localStorage.removeItem('score');
+      localStorage.removeItem('timeLeft');
+      localStorage.removeItem('endTime');
+      localStorage.removeItem('gameStartTime');
+      localStorage.removeItem('totalPistasUsadas');
+      localStorage.removeItem('mapaEscena');
+      localStorage.removeItem('portalOrigenEscena');
+      
+      // Redirigir al inicio del juego (escena modo-juego)
+      window.location.href = '/escaperoom/juego.php#modo-juego';
+    });
   }
 
-  document.getElementById('btn-restart').addEventListener('click', () => {
-    localStorage.removeItem('endTime');
-    window.location.href = '../juego.php';
-  });
-
-  function updateTimerDisplay() {
-    if (timerDisplay) timerDisplay.textContent = formatTime(timeLeft);
+  // Funciones para el modal de perfil
+  function cargarPerfil() {
+    fetch('../controller/perfilController.php', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Mostrar datos en la vista de visualización
+        document.getElementById('perfil-nombre-display').textContent = data.usuario.nombre || 'Sin nombre';
+        document.getElementById('perfil-email-display').textContent = data.usuario.email || 'Sin email';
+        
+        // Mostrar imagen de perfil
+        const imgPath = data.usuario.imagen_perfil && data.usuario.imagen_perfil.trim() !== '' 
+          ? data.usuario.imagen_perfil 
+          : '../img/avatar.webp';
+        document.getElementById('perfil-img-display').src = imgPath;
+        document.getElementById('perfil-img-preview').src = imgPath;
+        
+        // Llenar formulario de edición
+        document.getElementById('perfil-nombre').value = data.usuario.nombre || '';
+        document.getElementById('perfil-email').value = data.usuario.email || '';
+        
+        // Mostrar vista de visualización por defecto
+        mostrarVistaVisualizacion();
+      } else {
+        console.error('Error al cargar perfil:', data.error);
+      }
+    })
+    .catch(error => {
+      console.error('Error en la petición:', error);
+    });
   }
 
-  function formatTime(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  function mostrarVistaVisualizacion() {
+    document.getElementById('perfil-vista').style.display = 'block';
+    document.getElementById('perfil-edicion').style.display = 'none';
   }
 
-  // --- FUNCIÓN PARA ENVIAR RESULTADOS DE LA PARTIDA ---
-  function sendGameResult() {
-    const gameData = {
-      modo_juego: gameMode,
-      pistas_usadas: 0, // No hay pistas en este puzzle
-      resultado: 1 // 1 para éxito, 0 para fallo
-    };
-
-  fetch('/controller/guardarPartida.php', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(gameData),
-})
-.then(response => response.json())
-.then(data => {
-  if (data.success) {
-    // Éxito: puedes mostrar un mensaje o pasar a la siguiente pantalla
-    alert('¡Partida guardada con éxito!');
-  } else {
-    // Error: muestra el mensaje del backend al usuario
-    alert('Error: ' + data.mensaje);
+  function mostrarVistaEdicion() {
+    document.getElementById('perfil-vista').style.display = 'none';
+    document.getElementById('perfil-edicion').style.display = 'block';
   }
-})
-.catch((error) => {
-  alert('Error de conexión con el servidor.');
-});
 
-let activeGameModal = null;
-
-function openOverlayModal(modal) {
-  const gameModals = document.querySelectorAll('.modal-overlay'); // Selecciona todos los modales con esta clase
-  gameModals.forEach(m => {
-    if (m.style.display === 'flex') {
-      activeGameModal = m;
-      m.style.display = 'none';
+  function guardarPerfil(event) {
+    event.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('nombre', document.getElementById('perfil-nombre').value);
+    formData.append('email', document.getElementById('perfil-email').value);
+    
+    const inputImg = document.getElementById('input-perfil-img');
+    if (inputImg.files[0]) {
+      formData.append('imagen_perfil', inputImg.files[0]);
     }
-  });
-  if (modal) modal.style.display = 'flex';
-}
 
-function closeOverlayModal(modal) {
-  if (modal) modal.style.display = 'none';
-  if (activeGameModal) {
-    activeGameModal.style.display = 'flex';
-    activeGameModal = null;
+    fetch('../controller/perfilController.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        alert('Perfil actualizado correctamente');
+        cargarPerfil(); // Recargar datos
+        mostrarVistaVisualizacion(); // Volver a vista de visualización
+      } else {
+        alert('Error: ' + (data.error || 'No se pudo actualizar el perfil'));
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Error al guardar el perfil');
+    });
   }
-}
 
-  // --- MODAL DE PERFIL ---
-  const btnPerfil = document.getElementById('btn-perfil');
+  // Event listeners para el modal de perfil
   const cerrarModalPerfil = document.getElementById('cerrar-modal-perfil');
+  const btnEditarPerfil = document.getElementById('btn-editar-perfil');
+  const btnCancelarEdicion = document.getElementById('btn-cancelar-edicion');
+  const formPerfil = document.getElementById('form-perfil');
   const btnCambiarImg = document.getElementById('btn-cambiar-img');
   const inputPerfilImg = document.getElementById('input-perfil-img');
-  const perfilImgPreview = document.getElementById('perfil-img-preview');
 
   if (btnPerfil) {
-      btnPerfil.addEventListener('click', () => openOverlayModal(modalPerfil));
+    btnPerfil.addEventListener('click', () => {
+      modalPerfil.style.display = 'flex';
+      cargarPerfil();
+    });
   }
+
   if (cerrarModalPerfil) {
-      cerrarModalPerfil.addEventListener('click', () => closeOverlayModal(modalPerfil));
-  }
-  if (btnCambiarImg) {
-      btnCambiarImg.addEventListener('click', () => {
-        if (inputPerfilImg) inputPerfilImg.click();
-      });
+    cerrarModalPerfil.addEventListener('click', () => {
+      modalPerfil.style.display = 'none';
+      mostrarVistaVisualizacion();
+    });
   }
 
-  if (inputPerfilImg) {
-      inputPerfilImg.addEventListener('change', (e) => {
-          if (e.target.files && e.target.files[0]) {
-              const reader = new FileReader();
-              reader.onload = (event) => {
-                  if (perfilImgPreview) perfilImgPreview.src = event.target.result;
-              };
-              reader.readAsDataURL(e.target.files[0]);
-          }
-      });
+  if (btnEditarPerfil) {
+    btnEditarPerfil.addEventListener('click', mostrarVistaEdicion);
   }
 
-  // --- MODAL DE RANKING ---
-  const btnRanking = document.getElementById('btn-ranking');
-  const cerrarModalRanking = document.getElementById('cerrar-modal-ranking');
-  const tablaRankingBody = document.querySelector('#tabla-ranking tbody');
-
-  function cargarRanking() {
-      if (!tablaRankingBody) return;
-      tablaRankingBody.innerHTML = '';
-
-      fetch('/controller/obtenerRanking.php', {credentials: 'include'})
-          .then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  const scoreRanking = data.ranking.score || [];
-                  scoreRanking.forEach((item, index) => {
-                      const row = document.createElement('tr');
-                      row.innerHTML = `
-                          <td>${index + 1}</td>
-                          <td>${item.jugador}</td>
-                          <td>${item.valor} pts</td>
-                      `;
-                      tablaRankingBody.appendChild(row);
-                  });
-
-                  if (scoreRanking.length > 0 && (data.ranking.time || []).length > 0) {
-                      const separatorRow = document.createElement('tr');
-                      separatorRow.innerHTML = `<td colspan="3" style="text-align: center; font-weight: bold; background-color: rgba(255,255,255,0.1);">--- Ranking por Tiempo ---</td>`;
-                      tablaRankingBody.appendChild(separatorRow);
-                  }
-
-                  const timeRanking = data.ranking.time || [];
-                  timeRanking.forEach((item, index) => {
-                      const row = document.createElement('tr');
-                      row.innerHTML = `
-                          <td>${index + 1}</td>
-                          <td>${item.jugador}</td>
-                          <td>${formatTime(item.valor)}</td>
-                      `;
-                      tablaRankingBody.appendChild(row);
-                  });
-
-              } else {
-                  console.error('Error al obtener ranking:', data.mensaje);
-                  tablaRankingBody.innerHTML = `<tr><td colspan="3">Error al cargar el ranking: ${data.mensaje}</td></tr>`;
-              }
-          })
-          .catch(error => {
-              console.error('Error en la solicitud de ranking:', error);
-              tablaRankingBody.innerHTML = `<tr><td colspan="3">Error de conexión al cargar el ranking.</td></tr>`;
-          });
+  if (btnCancelarEdicion) {
+    btnCancelarEdicion.addEventListener('click', () => {
+      cargarPerfil(); // Recargar datos originales
+      mostrarVistaVisualizacion();
+    });
   }
 
-  if (btnRanking) {
-      btnRanking.addEventListener('click', () => {
-          cargarRanking();
-          openOverlayModal(modalRanking);
-      });
+  if (formPerfil) {
+    formPerfil.addEventListener('submit', guardarPerfil);
   }
 
-  if (cerrarModalRanking) {
-      cerrarModalRanking.addEventListener('click', () => closeOverlayModal(modalRanking));
-  }
-
-  window.addEventListener('click', (e) => {
-      if (e.target === modalPerfil) closeOverlayModal(modalPerfil);
-      if (e.target === modalRanking) closeOverlayModal(modalRanking);
-  });
-
-  inicializarJuegoMapa();
-
-let draggedPiece = null;
-
-// Load audio files
-const clickSound = new Audio('audios/click.wav');
-const errorSound = new Audio('audios/error.ogg');
-const successSound = new Audio('audios/success.wav');
-
-function randomizePiecePosition(piece, containerWidth, containerHeight) {
-  const padding = 20; // Padding from the container edges
-  const effectiveWidth = containerWidth - 2 * padding;
-  const effectiveHeight = containerHeight - 2 * padding;
-
-  const randomX = padding + Math.random() * (effectiveWidth - piece.offsetWidth);
-  const randomY = padding + Math.random() * (effectiveHeight - piece.offsetHeight);
-  const randomRotation = Math.random() * 360;
-
-  piece.style.left = `${randomX}px`;
-  piece.style.top = `${randomY}px`;
-  piece.style.transform = `rotate(${randomRotation}deg)`;
-}
-
-function dragStart(e) {
-  draggedPiece = e.target;
-  draggedPiece.style.zIndex = 1000; // Bring to front
-  resetBordersOnDragStart();
-  clickSound.play();
-}
-
-function dragOver(e) {
-  e.preventDefault(); // Necesario para permitir drop
-}
-
-function drop(e) {
-  e.preventDefault();
-
-  const target = e.target;
-
-  // If dropping onto a slot (board)
-  if (target.classList.contains("slot") && !target.hasChildNodes()) {
-    // Clear incorrect-slot from previous parent if it was a slot
-    if (draggedPiece.parentNode && draggedPiece.parentNode.classList.contains("slot")) {
-      draggedPiece.parentNode.classList.remove("incorrect-slot");
-      draggedPiece.parentNode.classList.remove("correct-slot"); // Also remove correct-slot
-    }
-
-    target.appendChild(draggedPiece);
-    draggedPiece.style.position = 'static'; // Reset position for slot
-    draggedPiece.style.transform = 'none'; // Reset rotation
-    draggedPiece.style.left = '0';
-    draggedPiece.style.top = '0';
-    draggedPiece.style.zIndex = 'auto';
-
-    // Check for correctness and apply border class
-    if (target.dataset.pos === draggedPiece.dataset.pos) {
-      target.classList.add("correct-slot");
-      target.classList.remove("incorrect-slot");
-      successSound.play();
-    } else {
-      target.classList.add("incorrect-slot");
-      errorSound.play();
-    }
-
-    checkWin();
-  } else if (target.id === "pieces" || target.classList.contains("piece")) { // If dropping onto piecesContainer or another piece within it
-    // Clear incorrect-slot from previous parent if it was a slot
-    if (draggedPiece.parentNode && draggedPiece.parentNode.classList.contains("slot")) {
-      draggedPiece.parentNode.classList.remove("incorrect-slot");
-      draggedPiece.parentNode.classList.remove("correct-slot"); // Also remove correct-slot
-    }
-
-    const piecesContainer = document.getElementById("pieces");
-    piecesContainer.appendChild(draggedPiece);
-    randomizePiecePosition(draggedPiece, piecesContainer.offsetWidth, piecesContainer.offsetHeight);
-    draggedPiece.style.zIndex = 'auto';
-  }
-}
-
-function resetBordersOnDragStart() {
-  const slots = document.querySelectorAll(".slot");
-  slots.forEach(slot => {
-    slot.classList.remove("correct-slot"); 
-  });
-}
-
-function checkWin() {
-  const slots = document.querySelectorAll(".slot");
-  let correct = 0;
-  slots.forEach(slot => {
-    if (
-      slot.hasChildNodes() &&
-      slot.dataset.pos === slot.firstChild.dataset.pos
-    ) {
-      correct++;
-    }
-  });
-
-  if (correct === 36) {
-    const boardContainer = document.getElementById("board");
-    const mainTitle = document.getElementById("main-title");
-    const piecesTitle = document.getElementById("pieces-title");
-    const boardTitle = document.getElementById("board-title");
-    const piecesContainer = document.getElementById("pieces");
-    const subtitle = document.getElementById("subtitle");
-
-    // Hide existing elements
-    boardContainer.style.transition = "opacity 2s ease-out, transform 2s ease-out";
-    boardContainer.style.opacity = 0;
-    boardContainer.style.transform = "scale(0.8)";
-    mainTitle.style.transition = "opacity 2s ease-out";
-    mainTitle.style.opacity = 0;
-    // piecesTitle.style.transition = "opacity 2s ease-out";
-    // piecesTitle.style.opacity = 0;
-    boardTitle.style.transition = "opacity 2s ease-out";
-    boardTitle.style.opacity = 0;
-    piecesContainer.style.transition = "opacity 2s ease-out";
-    piecesContainer.style.opacity = 0;
-    subtitle.style.transition = "opacity 2s ease-out";
-    subtitle.style.opacity = 0;
-
-    setTimeout(() => {
-      boardContainer.style.visibility = "hidden";
-      mainTitle.style.visibility = "hidden";
-      // piecesTitle.style.visibility = "hidden";
-      boardTitle.style.visibility = "hidden";
-      piecesContainer.style.visibility = "hidden";
-      subtitle.style.visibility = "hidden";
-
-      // Change background
-      document.body.classList.add('fondo-piedra2');
-      
-
-      // Display victory message
-      const victoryMessage = document.createElement("h1");
-      victoryMessage.textContent = "¡Enhorabuena, has completado el mapa!";
-      victoryMessage.style.opacity = 0;
-      victoryMessage.style.transition = "opacity 2s ease-in";
-      document.body.appendChild(victoryMessage);
-
-      // Simple confetti effect (CSS based)
-      const confetti = document.createElement("div");
-      confetti.classList.add("confetti");
-      document.body.appendChild(confetti);
-
-      setTimeout(() => {
-        victoryMessage.style.opacity = 1;
-        confetti.style.opacity = 1; // Make confetti visible
-      }, 100); // Small delay to allow elements to be appended
-
-      sendGameResult(); 
-
-    }, 2000); // Match the CSS transition duration
-  }
-}
-
-function mostrarTransicionMapaCompleto() {
-  // Selecciona todos los elementos principales excepto el body
-  const elementosOcultar = [
-    document.getElementById('main-title'),
-    document.getElementById('subtitle'),
-    document.querySelector('.puzzle-wrapper'),
-  ].filter(Boolean);
-
-   // Desvanece los elementos
-  elementosOcultar.forEach(el => {
-    el.style.transition = 'opacity 1.5s cubic-bezier(.4,0,.2,1)';
-    el.style.opacity = '0';
-  });
-
-  // Espera a que termine el desvanecimiento antes de ocultar y cambiar el fondo
-  setTimeout(() => {
-    elementosOcultar.forEach(el => {
-      el.style.visibility = 'hidden';
+  if (btnCambiarImg && inputPerfilImg) {
+    btnCambiarImg.addEventListener('click', () => {
+      inputPerfilImg.click();
     });
 
-    // Cambia el fondo con transición suave usando la clase CSS
-    document.body.classList.add('fondo-piedra2');
+    inputPerfilImg.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          document.getElementById('perfil-img-preview').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
 
-    // Crea el botón "Examinar Mapa" y lo muestra suavemente
-    const btnExaminar = document.createElement('button');
-    btnExaminar.id = 'btn-examinar-mapa';
-    btnExaminar.textContent = 'Examinar Mapa';
-    btnExaminar.className = 'btn-pista-primario btn-primary-gradient';
-    btnExaminar.style.opacity = '0';
-    btnExaminar.style.transition = 'opacity 1.5s cubic-bezier(.4,0,.2,1)';
-    document.body.appendChild(btnExaminar);
-
-    setTimeout(() => {
-      btnExaminar.style.opacity = '1';
-    }, 100); // Pequeño retardo para activar la transición
-
-  }, 1600); // Espera a que termine el fade-out antes de cambiar el fondo y mostrar el botón
-}};
+  // Cerrar modal al hacer clic fuera de él
+  if (modalPerfil) {
+    modalPerfil.addEventListener('click', (event) => {
+      if (event.target === modalPerfil) {
+        modalPerfil.style.display = 'none';
+        mostrarVistaVisualizacion();
+      }
+    });
+  }
+});

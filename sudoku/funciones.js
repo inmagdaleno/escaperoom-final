@@ -74,7 +74,7 @@ let totalPistasUsadas = 0;
 document.addEventListener("DOMContentLoaded", () => {
   scoreDisplay = document.getElementById("score");
   timerDisplay = document.getElementById("timer");
-  solveButton = document.querySelector('#solveButtonContainer button');
+  solveButton = document.querySelector('#btn-resolver');
   
   const groupIrAdelanteDiv = document.getElementById("group-ir-adelante");
 
@@ -83,6 +83,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (gameOverOverlay) {
     gameOverOverlay.classList.add('oculto');
     gameOverOverlay.style.display = 'none';
+  }
+
+  // Limpiar las marcas de regreso (sin aplicar penalizaciones)
+  const regresoDesde = localStorage.getItem('regresoDesdeModulo');
+  const tiempoRegreso = localStorage.getItem('tiempoRegreso');
+  
+  if (regresoDesde && tiempoRegreso && (Date.now() - parseInt(tiempoRegreso)) < 5000) {
+    // Solo limpiar las marcas sin aplicar penalizaciones
+    localStorage.removeItem('regresoDesdeModulo');
+    localStorage.removeItem('tiempoRegreso');
   }
 
   renderBoard();
@@ -147,6 +157,25 @@ document.addEventListener("DOMContentLoaded", () => {
       startTimer();
     }
     if (btnPistaExtra) btnPistaExtra.style.display = "flex";
+    
+    // Actualizar mensaje según el modo de juego
+    actualizarMensajeInstrucciones();
+  }
+
+  // --- ACTUALIZAR MENSAJE SEGÚN MODO DE JUEGO ---
+  function actualizarMensajeInstrucciones() {
+    const mensajeElement = document.getElementById("mensaje-instrucciones");
+    if (mensajeElement) {
+      let mensaje = "Arrastra las runas hasta su posición correcta en el tablero. ¡No repitas símbolos ni en filas, ni en columnas ni en cada uno de los cuadrantes marcados en rojo!<br>";
+      
+      if (gameMode === 'time') {
+        mensaje += "Cada vez que hagas click en resolver y no sea correcta la solución se te penalizará restando 30 segundos a tu valioso tiempo.";
+      } else if (gameMode === 'score') {
+        mensaje += "Cada vez que hagas click en resolver y no sea correcta la solución se te penalizará restando 15 puntos de tu puntuación.";
+      }
+      
+      mensajeElement.innerHTML = mensaje;
+    }
   }
 
   // --- LÓGICA DE PISTAS ---
@@ -318,18 +347,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (btnVolverAtras) {
     btnVolverAtras.addEventListener("click", () => {
-      // Marcar que se está regresando desde sudoku para aplicar penalización
-      localStorage.setItem('regresoDesdeModulo', 'sudoku');
-      localStorage.setItem('tiempoRegreso', Date.now());
       // Volver al juego principal - escena templo
-      window.location.href = "../juego.php#escena-templo";
+      window.location.href = "/escaperoom/juego.php#escena-templo";
     });
   }
 
   if (btnIrAdelanteButton) {
     btnIrAdelanteButton.addEventListener("click", () => {
-      // Ir a la siguiente escena - directamente al mapa con escena jungla incluida
-      window.location.href = "../mapa/mapa.php";
+      // Resolver automáticamente el sudoku con animación
+      completarSudokuAutomaticamente();
+      
+      // No necesitamos redirigir aquí ya que completarSudokuAutomaticamente
+      // ahora muestra el modal de pista extra que maneja la redirección
     });
   }
 
@@ -338,19 +367,14 @@ document.addEventListener("DOMContentLoaded", () => {
     // Solo iniciar timer en modo tiempo
     if (gameMode !== 'time') return;
     
-    // El timer global maneja todo el timing
-    // Solo aseguramos que el timer global esté activo
-    if (window.globalTimer && !window.globalTimer.isActive()) {
-      const hasExistingTimer = localStorage.getItem('endTime');
-      if (hasExistingTimer) {
-        window.globalTimer.resumeTimer();
-      }
-    }
-    
-    // Actualizar timeLeft local desde el timer global
+    // El timer global ya debería estar funcionando, no hacer nada más
+    // Solo asegurar que el display esté actualizado
     if (window.globalTimer) {
-      timeLeft = window.globalTimer.getTimeLeft();
-      updateTimerDisplay();
+      const currentTime = window.globalTimer.getTimeLeft();
+      if (currentTime > 0) {
+        timeLeft = currentTime;
+        updateTimerDisplay();
+      }
     }
   }
 
@@ -358,7 +382,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (window.globalTimer) {
       window.globalTimer.clear();
     }
-    window.location.href = '../juego.php';
+    window.location.href = '/escaperoom/juego.php';
   });
 
   function updateTimerDisplay() {
@@ -437,11 +461,41 @@ fetch('../controller/guardarPartida.php', {
   const perfilImgPreview = document.getElementById('perfil-img-preview');
 
   if (btnPerfil) {
-      btnPerfil.addEventListener('click', () => openOverlayModal(modalPerfil));
+      btnPerfil.addEventListener('click', (e) => {
+        e.preventDefault();
+        cargarPerfil();
+        openOverlayModal(modalPerfil);
+      });
   }
   if (cerrarModalPerfil) {
       cerrarModalPerfil.addEventListener('click', () => closeOverlayModal(modalPerfil));
   }
+
+  // Botón editar perfil
+  const btnEditarPerfil = document.getElementById('btn-editar-perfil');
+  if (btnEditarPerfil) {
+    btnEditarPerfil.addEventListener('click', () => {
+      mostrarVistaEdicion();
+    });
+  }
+
+  // Botón cancelar edición
+  const btnCancelarEdicion = document.getElementById('btn-cancelar-edicion');
+  if (btnCancelarEdicion) {
+    btnCancelarEdicion.addEventListener('click', () => {
+      mostrarVistaVisualizacion();
+    });
+  }
+
+  // Formulario de perfil
+  const formPerfil = document.getElementById('form-perfil');
+  if (formPerfil) {
+    formPerfil.addEventListener('submit', (e) => {
+      e.preventDefault();
+      guardarPerfil();
+    });
+  }
+
   if (btnCambiarImg) {
       btnCambiarImg.addEventListener('click', () => {
         if (inputPerfilImg) inputPerfilImg.click();
@@ -468,58 +522,96 @@ fetch('../controller/guardarPartida.php', {
   const tablaRankingBody = document.querySelector('#tabla-ranking tbody');
 
   function cargarRanking() {
-      if (!tablaRankingBody) return;
-      tablaRankingBody.innerHTML = '';
+    fetch('../controller/obtenerRanking.php')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Datos del ranking:', data);
+        
+        // Cargar ranking por puntos
+        const tbodyPuntos = document.querySelector('#tabla-ranking-puntos tbody');
+        if (tbodyPuntos) {
+          tbodyPuntos.innerHTML = '';
+          
+          if (data.success && data.ranking && data.ranking.score && data.ranking.score.length > 0) {
+            data.ranking.score.forEach((jugador, i) => {
+              tbodyPuntos.innerHTML += `<tr>
+                <td>${i+1}</td>
+                <td>${jugador.jugador}</td>
+                <td>${jugador.valor} puntos</td>
+              </tr>`;
+            });
+          } else {
+            tbodyPuntos.innerHTML = '<tr><td colspan="3">No hay partidas por puntos</td></tr>';
+          }
+        }
+        
+        // Cargar ranking por tiempo
+        const tbodyTiempo = document.querySelector('#tabla-ranking-tiempo tbody');
+        if (tbodyTiempo) {
+          tbodyTiempo.innerHTML = '';
+          
+          if (data.success && data.ranking && data.ranking.time && data.ranking.time.length > 0) {
+            data.ranking.time.forEach((jugador, i) => {
+              const minutos = Math.floor(jugador.valor / 60);
+              const segundos = jugador.valor % 60;
+              tbodyTiempo.innerHTML += `<tr>
+                <td>${i+1}</td>
+                <td>${jugador.jugador}</td>
+                <td>${minutos}:${segundos.toString().padStart(2, '0')}</td>
+              </tr>`;
+            });
+          } else {
+            tbodyTiempo.innerHTML = '<tr><td colspan="3">No hay partidas por tiempo</td></tr>';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error cargando ranking:', error);
+        const tbodyPuntos = document.querySelector('#tabla-ranking-puntos tbody');
+        const tbodyTiempo = document.querySelector('#tabla-ranking-tiempo tbody');
+        if (tbodyPuntos) tbodyPuntos.innerHTML = '<tr><td colspan="3">Error al cargar ranking</td></tr>';
+        if (tbodyTiempo) tbodyTiempo.innerHTML = '<tr><td colspan="3">Error al cargar ranking</td></tr>';
+      });
+  }
 
-      fetch('../controller/obtenerRanking.php')
-          .then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  const scoreRanking = data.ranking.score || [];
-                  scoreRanking.forEach((item, index) => {
-                      const row = document.createElement('tr');
-                      row.innerHTML = `
-                          <td>${index + 1}</td>
-                          <td>${item.jugador}</td>
-                          <td>${item.valor} pts</td>
-                      `;
-                      tablaRankingBody.appendChild(row);
-                  });
-
-                  if (scoreRanking.length > 0 && (data.ranking.time || []).length > 0) {
-                      const separatorRow = document.createElement('tr');
-                      separatorRow.innerHTML = `<td colspan="3" style="text-align: center; font-weight: bold; background-color: rgba(255,255,255,0.1);">--- Ranking por Tiempo ---</td>`;
-                      tablaRankingBody.appendChild(separatorRow);
-                  }
-
-                  const timeRanking = data.ranking.time || [];
-                  timeRanking.forEach((item, index) => {
-                      const row = document.createElement('tr');
-                      row.innerHTML = `
-                          <td>${index + 1}</td>
-                          <td>${item.jugador}</td>
-                          <td>${formatTime(item.valor)}</td>
-                      `;
-                      tablaRankingBody.appendChild(row);
-                  });
-
-              } else {
-                  console.error('Error al obtener ranking:', data.mensaje);
-                  tablaRankingBody.innerHTML = `<tr><td colspan="3">Error al cargar el ranking: ${data.mensaje}</td></tr>`;
-              }
-          })
-          .catch(error => {
-              console.error('Error en la solicitud de ranking:', error);
-              tablaRankingBody.innerHTML = `<tr><td colspan="3">Error de conexión al cargar el ranking.</td></tr>`;
-          });
+  function showRanking(tipo) {
+    // Ocultar todas las tablas
+    const tablaPuntos = document.getElementById('tabla-ranking-puntos');
+    const tablaTiempo = document.getElementById('tabla-ranking-tiempo');
+    
+    if (tablaPuntos) tablaPuntos.style.display = 'none';
+    if (tablaTiempo) tablaTiempo.style.display = 'none';
+    
+    // Mostrar la tabla seleccionada
+    if (tipo === 'puntos' && tablaPuntos) {
+      tablaPuntos.style.display = 'table';
+    } else if (tipo === 'tiempo' && tablaTiempo) {
+      tablaTiempo.style.display = 'table';
+    }
+    
+    // Actualizar estado de los botones
+    const botones = document.querySelectorAll('.ranking-btn');
+    botones.forEach(btn => btn.classList.remove('active'));
+    
+    const botonActivo = document.querySelector(`.ranking-btn[onclick*="${tipo}"]`);
+    if (botonActivo) {
+      botonActivo.classList.add('active');
+    }
   }
 
   if (btnRanking) {
       btnRanking.addEventListener('click', () => {
           cargarRanking();
           openOverlayModal(modalRanking);
+          // Mostrar puntos por defecto y activar el botón correspondiente
+          setTimeout(() => {
+            showRanking('puntos');
+          }, 100);
       });
   }
+
+  // Hacer showRanking disponible globalmente
+  window.showRanking = showRanking;
 
   if (cerrarModalRanking) {
       cerrarModalRanking.addEventListener('click', () => closeOverlayModal(modalRanking));
@@ -586,7 +678,7 @@ fetch('../controller/guardarPartida.php', {
   if (btnAvanzarSudoku) {
     btnAvanzarSudoku.addEventListener('click', () => {
       // Redirigir a la escena de la jungla
-      window.location.href = "../juego.php#escena-jungla"; 
+      window.location.href = "/escaperoom/juego.php#escena-jungla"; 
     });
   }
 
@@ -977,7 +1069,7 @@ function handleSolveButton() {
   if (solveButton.textContent === "Resolver") {
     if (isSudokuSolved()) {
       document.getElementById("resultado").innerHTML =
-        "¡Puzzle resuelto! Código secreto: " + obtenerCodigo();
+        "¡Puzzle resuelto!";
       table.classList.add("success");
       playSound("audioSuccess");
       iniciarResolucion(); // Aplica el estado resuelto a las celdas doradas
@@ -988,31 +1080,26 @@ function handleSolveButton() {
       resultadoDiv.textContent = "Hay errores. Revisa filas, columnas y cuadrantes.";
       playSound("audioError");
       if (gameMode === 'score') {
-        score -= 10;
+        score -= 15; // Cambiar de 10 a 15 puntos
         localStorage.setItem('score', score); // Guardar en localStorage
         if (scoreDisplay) scoreDisplay.textContent = score;
       } else if (gameMode === 'time') {
         // Usar el timer global para aplicar penalización por respuesta incorrecta
         if (window.globalTimer) {
-          window.globalTimer.applyPenalty(60); // 1 minuto
+          // Verificar que hay tiempo suficiente antes de aplicar penalización
+          const currentTime = window.globalTimer.getTimeLeft();
+          if (currentTime > 30) { // Solo aplicar penalización si hay más de 30 segundos
+            window.globalTimer.applyPenalty(30); // Reducir penalización a 30 segundos
+          }
           timeLeft = window.globalTimer.getTimeLeft(); // Actualizar timeLeft local
         }
       }
     }
   } else if (solveButton.textContent === "Continuar") {
-    // Ocultar el juego de Sudoku
-    document.querySelector('.main-container').style.display = 'none';
-    document.getElementById('outerContainer').style.display = 'none';
-    document.getElementById('dragZoneContainer').style.display = 'none';
-    document.getElementById('resultado').style.display = 'none';
-    document.getElementById('score-container').style.display = 'none';
-    document.getElementById('timer-container').style.display = 'none';
-    document.querySelector('.esquina-superior-izquierda').style.display = 'none';
-    document.querySelector('.esquina-superior-derecha').style.display = 'none';
-
-    // Mostrar el nuevo modal de Sudoku Resuelto
-    // Simplemente redirigir a la siguiente escena
-    window.location.href = "../juego.php#escena-jungla";
+    // Mostrar el modal de pista extra del sudoku después de un breve delay
+    setTimeout(() => {
+      mostrarModalPistaExtraSudoku();
+    }, 500); // Pequeño delay para que se vea la transición
   }
 }
 
@@ -1055,6 +1142,185 @@ function playSound(id) {
     audio.currentTime = 0;
     audio.play();
   }
+}
+
+// Función para completar automáticamente el sudoku con animación
+function completarSudokuAutomaticamente() {
+  const table = document.getElementById("sudoku");
+  
+  // Llenar el tablero con la solución completa
+  for (let row = 0; row < 6; row++) {
+    for (let col = 0; col < 6; col++) {
+      const cell = table.rows[row].cells[col];
+      if (cell && !cell.classList.contains('initial-cell')) {
+        // Solo llenar las celdas que no son iniciales
+        const figura = figuras.find(f => f.id === sudokuSolution[row][col]);
+        if (figura) {
+          cell.innerHTML = figura.svg;
+          cell.dataset.value = figura.id;
+          
+          // Agregar una pequeña animación de aparición
+          cell.style.opacity = '0';
+          cell.style.transform = 'scale(0.8)';
+          setTimeout(() => {
+            cell.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            cell.style.opacity = '1';
+            cell.style.transform = 'scale(1)';
+          }, (row * 6 + col) * 50); // Delay progresivo
+        }
+      }
+    }
+  }
+  
+  // Después de completar el tablero, iniciar la animación dorada
+  setTimeout(() => {
+    mostrarMensaje("¡Puzzle resuelto automáticamente!");
+    iniciarResolucion(); // Aplica el estado resuelto a las celdas doradas
+    isSudokuSolvedOnce = true; // Marcar que el Sudoku ha sido resuelto
+    
+    // Mostrar el modal de pista extra después de la animación
+    setTimeout(() => {
+      mostrarModalPistaExtraSudoku();
+    }, 1000); // Esperar 1 segundo más después de la animación dorada
+  }, 1500); // Esperar a que termine la animación de llenado
+}
+
+// Función para mostrar el modal de pista extra del sudoku
+function mostrarModalPistaExtraSudoku() {
+  // Mostrar la pantalla con fondo tropical
+  const pantallaTropical = document.getElementById('pantalla-pista-extra-sudoku');
+  if (pantallaTropical) {
+    pantallaTropical.style.display = 'flex';
+    pantallaTropical.classList.remove('oculto');
+  }
+  
+  // Obtener el botón de continuar y limpiar listeners anteriores
+  const btnContinuar = document.getElementById('btn-continuar-sudoku');
+  if (btnContinuar) {
+    // Crear un nuevo botón para evitar múltiples listeners
+    const newBtnContinuar = btnContinuar.cloneNode(true);
+    btnContinuar.parentNode.replaceChild(newBtnContinuar, btnContinuar);
+    
+    // Agregar el event listener al nuevo botón
+    newBtnContinuar.addEventListener('click', function() {
+      // Asegurar que el gameMode se mantenga en localStorage
+      if (gameMode) {
+        localStorage.setItem('gameMode', gameMode);
+      }
+      if (score !== undefined) {
+        localStorage.setItem('score', score);
+      }
+      
+      // Ocultar la pantalla tropical
+      if (pantallaTropical) {
+        pantallaTropical.style.display = 'none';
+        pantallaTropical.classList.add('oculto');
+      }
+      
+      // Redirigir al mapa
+      window.location.href = "../mapa/mapa.php";
+    });
+  }
+}
+
+// --- FUNCIONES DE PERFIL ---
+function cargarPerfil() {
+  fetch('../controller/perfilController.php')
+      .then(res => res.json())
+      .then(data => {
+          if (data.success) {
+              // Actualizar vista de visualización
+              const nombreDisplay = document.getElementById('perfil-nombre-display');
+              const emailDisplay = document.getElementById('perfil-email-display');
+              
+              if (nombreDisplay) nombreDisplay.textContent = data.usuario.nombre || 'Sin nombre';
+              if (emailDisplay) emailDisplay.textContent = data.usuario.email || 'Sin email';
+              
+              // Actualizar campos de edición
+              const nombreInput = document.getElementById('perfil-nombre');
+              const emailInput = document.getElementById('perfil-email');
+              
+              if (nombreInput) nombreInput.value = data.usuario.nombre || '';
+              if (emailInput) emailInput.value = data.usuario.email || '';
+              
+              // Mostrar vista de visualización
+              mostrarVistaVisualizacion();
+          } else {
+              console.error('Error al cargar perfil:', data.mensaje);
+          }
+      })
+      .catch(error => {
+          console.error('Error cargando perfil:', error);
+      });
+}
+
+function guardarPerfil() {
+  const nombreInput = document.getElementById('perfil-nombre');
+  const emailInput = document.getElementById('perfil-email');
+  
+  if (!nombreInput || !emailInput) {
+      alert('Error: No se encontraron los campos del formulario.');
+      return;
+  }
+  
+  const nombre = nombreInput.value.trim();
+  const email = emailInput.value.trim();
+  
+  if (!nombre || !email) {
+      alert('Por favor, completa todos los campos.');
+      return;
+  }
+  
+  if (!email.includes('@') || !email.includes('.')) {
+      alert('Por favor, ingresa un email válido.');
+      return;
+  }
+  
+  const perfilData = { nombre, email };
+  
+  fetch('../controller/perfilController.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(perfilData),
+  })
+  .then(response => response.json())
+  .then(data => {
+      if (data.success) {
+          alert('Perfil actualizado con éxito.');
+          
+          // Actualizar la vista de visualización con los nuevos datos
+          const nombreDisplay = document.getElementById('perfil-nombre-display');
+          const emailDisplay = document.getElementById('perfil-email-display');
+          
+          if (nombreDisplay) nombreDisplay.textContent = nombre;
+          if (emailDisplay) emailDisplay.textContent = email;
+          
+          // Volver a la vista de visualización
+          mostrarVistaVisualizacion();
+      } else {
+          alert('Error al actualizar perfil: ' + data.mensaje);
+      }
+  })
+  .catch(error => {
+      console.error('Error guardando perfil:', error);
+      alert('Error al guardar el perfil. Inténtalo de nuevo.');
+  });
+}
+
+function mostrarVistaVisualizacion() {
+  const vistaVisualizacion = document.getElementById('perfil-vista');
+  const vistaEdicion = document.getElementById('perfil-edicion');
+  
+  if (vistaVisualizacion) vistaVisualizacion.style.display = 'block';
+  if (vistaEdicion) vistaEdicion.style.display = 'none';
+}
+
+function mostrarVistaEdicion() {
+  const vistaVisualizacion = document.getElementById('perfil-vista');
+  const vistaEdicion = document.getElementById('perfil-edicion');
+  
+  if (vistaVisualizacion) vistaVisualizacion.style.display = 'none';
+  if (vistaEdicion) vistaEdicion.style.display = 'block';
 }
 
 

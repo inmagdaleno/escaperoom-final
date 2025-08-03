@@ -16,10 +16,13 @@ if (!isset($_SESSION['usuario_id'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Disco Cifrado</title>
   <link rel="stylesheet" href="estilos.css" />
-  <link rel="preload" href="img/fondo.webp" as="image" />
-  <link rel="preload" href="img/disco1.webp" as="image" />
-  <link rel="preload" href="img/disco2.webp" as="image" />
-  <link rel="preload" href="img/disco3.webp" as="image" />
+  
+  <!-- Preload de imágenes críticas para reducir demoras -->
+  <link rel="preload" href="img/disco1.webp" as="image">
+  <link rel="preload" href="img/disco2.webp" as="image">
+  <link rel="preload" href="img/disco3.webp" as="image">
+  <link rel="preload" href="img/fondo.webp" as="image">
+  <link rel="preload" href="img/flecha.svg" as="image">
 
   <style>
   @import url('https://fonts.googleapis.com/css2?family=Barriecito&family=Barrio&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
@@ -47,49 +50,133 @@ if (!isset($_SESSION['usuario_id'])) {
       </button>
       <span class="button-label">RANKING</span>
     </div>
+    <div class="button-group">
+      <!-- Botón Cerrar Sesión -->
+      <button id="btn-cerrar-sesion" class="btn-icono-esquina" title="Cerrar Sesión">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+      <span class="button-label">SALIR</span>
+    </div>
   </div>
 
   <!-- Modal para Perfil de Usuario -->
-  <div id="modal-perfil" class="modal modal-overlay">
+  <div id="modal-perfil" class="modal-overlay">
     <div class="modal-contenido">
       <span class="cerrar" id="cerrar-modal-perfil">&times;</span>
       <h2>Perfil de Usuario</h2>
-      <form id="form-perfil">
-        <div class="perfil-img-container">
-          <img id="perfil-img-preview" src="../img/avatar.webp" alt="Imagen de perfil">
-          <input type="file" id="input-perfil-img" accept="image/*" style="display: none;">
-          <button type="button" id="btn-cambiar-img" class="btn-pista-secundario">Cambiar Imagen</button>
+      
+      <!-- Vista de visualización del perfil -->
+      <div id="perfil-vista" class="perfil-vista">
+        <div class="perfil-info-container">
+          <div class="perfil-img-container">
+            <img id="perfil-img-display" src="../img/avatar.webp" alt="Imagen de perfil">
+          </div>
+          <div class="perfil-datos">
+            <div class="perfil-campo">
+              <strong>Nombre:</strong>
+              <span id="perfil-nombre-display">-</span>
+            </div>
+            <div class="perfil-campo">
+              <strong>Email:</strong>
+              <span id="perfil-email-display">-</span>
+            </div>
+          </div>
         </div>
-        <div class="form-grupo">
-          <label for="perfil-nombre">Nombre:</label>
-          <input type="text" id="perfil-nombre" name="nombre" placeholder="Tu nombre">
+        <div class="perfil-acciones">
+          <button type="button" id="btn-editar-perfil" class="btn-pista-primario">Editar Perfil</button>
         </div>
-        <div class="form-grupo">
-          <label for="perfil-email">Email:</label>
-          <input type="email" id="perfil-email" name="email" placeholder="Tu correo electrónico">
-        </div>
-        <button type="submit" id="btn-guardar-perfil">Guardar Cambios</button>
-      </form>
+      </div>
+      
+      <!-- Vista de edición del perfil -->
+      <div id="perfil-edicion" class="perfil-edicion" style="display: none;">
+        <form id="form-perfil">
+          <div class="perfil-img-container">
+            <img id="perfil-img-preview" src="../img/avatar.webp" alt="Imagen de perfil">
+            <input type="file" id="input-perfil-img" accept="image/*" style="display: none;">
+            <button type="button" id="btn-cambiar-img" class="btn-pista-secundario">Cambiar Imagen</button>
+          </div>
+          <div class="form-grupo">
+            <label for="perfil-nombre">Nombre:</label>
+            <input type="text" id="perfil-nombre" name="nombre" placeholder="Tu nombre">
+          </div>
+          <div class="form-grupo">
+            <label for="perfil-email">Email:</label>
+            <input type="email" id="perfil-email" name="email" placeholder="Tu correo electrónico">
+          </div>
+          <div class="perfil-acciones">
+            <button type="submit" id="btn-guardar-perfil" class="btn-pista-primario" style="margin: 0 auto; display: block;">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
   <!-- Modal para Ranking -->
-  <div id="modal-ranking" class="modal modal-overlay">
+  <div id="modal-ranking" class="modal-overlay">
     <div class="modal-contenido">
       <span class="cerrar" id="cerrar-modal-ranking">&times;</span>
       <h2>Ranking de Jugadores</h2>
-      <table id="tabla-ranking">
-        <thead>
-          <tr>
-            <th>Puesto</th>
-            <th>Jugador</th>
-            <th>Puntuación</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Las filas del ranking se insertarán aquí con JavaScript -->
-        </tbody>
-      </table>
+      
+      <div class="ranking-buttons">
+        <button id="btn-puntos" class="ranking-btn active" onclick="showRanking('puntos')">Por Puntos</button>
+        <button id="btn-tiempo" class="ranking-btn" onclick="showRanking('tiempo')">Por Tiempo</button>
+      </div>
+      
+      <div id="ranking-puntos" class="ranking-table active">
+        <table id="tabla-ranking-puntos">
+          <thead>
+            <tr>
+              <th>Posición</th>
+              <th>Jugador</th>
+              <th>Puntuación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Los datos se cargan dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div id="ranking-tiempo" class="ranking-table">
+        <table id="tabla-ranking-tiempo">
+          <thead>
+            <tr>
+              <th>Posición</th>
+              <th>Jugador</th>
+              <th>Tiempo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Los datos se cargan dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para Pista Extra -->
+  <div id="modal-pista" class="modal-overlay">
+    <div class="modal-contenido">
+      <span class="cerrar" id="cerrar-modal-pista">&times;</span>
+      <h2>Pista Extra</h2>
+      <p id="pista-explicacion"></p>
+      <p id="feedback-pista" class="feedback"></p>
+      <div class="modal-acciones">
+        <button id="btn-confirmar-pista" class="btn-pista-primario">Confirmar</button>
+        <button id="btn-descartar-pista" class="btn-pista-secundario">Descartar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal imagen de la pista extra -->
+  <div id="modal-pista-imagen" class="modal-overlay" style="z-index:3000;">
+    <div class="modal-contenido">
+      <span class="cerrar" id="cerrar-modal-pista-imagen">&times;</span>
+      <h2>Pista Visual</h2>
+      <img id="img-pista-extra" src="img/pergamino-f1.webp" alt="Pista visual">
+      <div style="text-align:center;margin:0;flex-shrink:0;padding:0;">
+        <button id="btn-cerrar-pista-imagen" class="btn-pista-primario">Cerrar</button>
+      </div>
     </div>
   </div>
 
@@ -114,6 +201,14 @@ if (!isset($_SESSION['usuario_id'])) {
         <i class="fa-solid fa-arrow-right"></i>
       </button>
       <span class="button-label">ADELANTE</span>
+    </div>
+
+    <!-- Botón Pista Extra -->
+    <div class="button-group">
+      <button id="btn-pista-extra" class="btn-icono-esquina" title="Pista Extra">
+        <i class="fa-solid fa-magnifying-glass"></i>
+      </button>
+      <span class="button-label">PISTAS</span>
     </div>
   </div>
 
@@ -176,6 +271,7 @@ if (!isset($_SESSION['usuario_id'])) {
     </div>
   </div>
 
+  <script src="../js/globalTimer.js"></script>
   <script src="funciones.js"></script>
 </body>
 </html>

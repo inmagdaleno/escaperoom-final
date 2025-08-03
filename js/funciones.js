@@ -1,4 +1,39 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // --- PRECARGA DE IMÁGENES PARA EVITAR GLITCHES ---
+  function preloadImages() {
+    const imageUrls = [
+      'img/botella.webp',
+      'img/playa.webp', 
+      'img/templo.webp',
+      'img/atardecer.webp',
+      'img/jungla.webp',
+      'img/pergamino1.webp',
+      'img/avatar.webp'
+    ];
+
+    const imagePromises = imageUrls.map(url => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(url);
+        img.onerror = () => reject(url);
+        img.src = url;
+      });
+    });
+
+    Promise.allSettled(imagePromises).then(results => {
+      console.log('Precarga de imágenes completada');
+      // Aplicar clase loaded a escenas específicas
+      const escenaPlaya = document.getElementById("escena-playa");
+      if (escenaPlaya) {
+        escenaPlaya.classList.remove('loading');
+        escenaPlaya.classList.add('loaded');
+      }
+    });
+  }
+
+  // Inicializar precarga de imágenes
+  preloadImages();
+
   // --- ELEMENTOS DE LA INTERFAZ ---
   const btnComenzar = document.getElementById("btn-comenzar");
   const scoreDisplay = document.getElementById("score");
@@ -100,6 +135,8 @@ document.addEventListener("DOMContentLoaded", () => {
   window.inicializarJuego = function() {
     // Limpiar localStorage al reiniciar
     localStorage.removeItem('endTime');
+    localStorage.removeItem('gameStartTime'); // Limpiar tiempo de inicio
+    localStorage.removeItem('totalPistasUsadas'); // Limpiar contador de pistas
     localStorage.setItem('score', 400);
     localStorage.setItem('timeLeft', 30 * 60);
     localStorage.removeItem('gameMode'); // Permitir seleccionar modo nuevamente
@@ -400,7 +437,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Event listeners para pistas
-  if (btnPistaExtra) btnPistaExtra.addEventListener("click", () => window.openOverlayModal(modalPista));
+  // No agregar event listener a btnPistaExtra si estamos en la página del portal
+  if (btnPistaExtra && !window.location.pathname.includes('portal.php')) {
+    btnPistaExtra.addEventListener("click", () => window.openOverlayModal(modalPista));
+  }
   if (btnSegundaPista) btnSegundaPista.addEventListener("click", pedirPista);
   if (btnCerrarPista) btnCerrarPista.addEventListener("click", () => window.closeOverlayModal(modalPista));
   if (cerrarModalPista) cerrarModalPista.addEventListener("click", () => window.closeOverlayModal(modalPista));
@@ -500,52 +540,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MODAL DE RANKING ---
   function cargarRanking() {
-    if (!tablaRankingBody) return;
-    tablaRankingBody.innerHTML = '';
-    
-    fetch('controller/obtenerRanking.php', {
-      method: 'GET',
-      headers: { 'Accept': 'application/json' }
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        const scoreRanking = data.ranking.score || [];
-        scoreRanking.forEach((item, index) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${item.jugador}</td>
-            <td>${item.valor} pts</td>
-          `;
-          tablaRankingBody.appendChild(row);
-        });
+    fetch('controller/obtenerRanking.php')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Datos del ranking:', data);
         
-        if (scoreRanking.length > 0 && (data.ranking.time || []).length > 0) {
-          const separatorRow = document.createElement('tr');
-          separatorRow.innerHTML = `<td colspan="3" style="text-align: center; font-weight: bold; background-color: rgba(255,255,255,0.1);">--- Ranking por Tiempo ---</td>`;
-          tablaRankingBody.appendChild(separatorRow);
+        // Cargar ranking por puntos
+        const tbodyPuntos = document.querySelector('#tabla-ranking-puntos tbody');
+        if (tbodyPuntos) {
+          tbodyPuntos.innerHTML = '';
+          
+          if (data.success && data.ranking && data.ranking.score && data.ranking.score.length > 0) {
+            data.ranking.score.forEach((jugador, i) => {
+              tbodyPuntos.innerHTML += `<tr>
+                <td>${i+1}</td>
+                <td>${jugador.jugador}</td>
+                <td>${jugador.valor} puntos</td>
+              </tr>`;
+            });
+          } else {
+            tbodyPuntos.innerHTML = '<tr><td colspan="3">No hay partidas por puntos</td></tr>';
+          }
         }
         
-        const timeRanking = data.ranking.time || [];
-        timeRanking.forEach((item, index) => {
-          const row = document.createElement('tr');
-          row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${item.jugador}</td>
-            <td>${window.formatTime(item.valor)}</td>
-          `;
-          tablaRankingBody.appendChild(row);
-        });
-      } else {
-        console.error('Error al obtener ranking:', data.mensaje);
-        tablaRankingBody.innerHTML = `<tr><td colspan="3">Error al cargar el ranking: ${data.mensaje}</td></tr>`;
-      }
-    })
-    .catch(error => {
-      console.error('Error en la solicitud de ranking:', error);
-      tablaRankingBody.innerHTML = `<tr><td colspan="3">Error de conexión al cargar el ranking.</td></tr>`;
-    });
+        // Cargar ranking por tiempo
+        const tbodyTiempo = document.querySelector('#tabla-ranking-tiempo tbody');
+        if (tbodyTiempo) {
+          tbodyTiempo.innerHTML = '';
+          
+          if (data.success && data.ranking && data.ranking.time && data.ranking.time.length > 0) {
+            data.ranking.time.forEach((jugador, i) => {
+              const minutos = Math.floor(jugador.valor / 60);
+              const segundos = jugador.valor % 60;
+              tbodyTiempo.innerHTML += `<tr>
+                <td>${i+1}</td>
+                <td>${jugador.jugador}</td>
+                <td>${minutos}:${segundos.toString().padStart(2, '0')}</td>
+              </tr>`;
+            });
+          } else {
+            tbodyTiempo.innerHTML = '<tr><td colspan="3">No hay partidas por tiempo</td></tr>';
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Error cargando ranking:', error);
+        const tbodyPuntos = document.querySelector('#tabla-ranking-puntos tbody');
+        const tbodyTiempo = document.querySelector('#tabla-ranking-tiempo tbody');
+        if (tbodyPuntos) tbodyPuntos.innerHTML = '<tr><td colspan="3">Error al cargar ranking</td></tr>';
+        if (tbodyTiempo) tbodyTiempo.innerHTML = '<tr><td colspan="3">Error al cargar ranking</td></tr>';
+      });
   }
 
   if (btnRanking) {
@@ -561,11 +605,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- MODAL DE PERFIL ---
   if (btnPerfil) {
-    btnPerfil.addEventListener('click', () => window.openOverlayModal(modalPerfil));
+    btnPerfil.addEventListener('click', (e) => {
+      e.preventDefault();
+      cargarPerfil();
+      window.openOverlayModal(modalPerfil);
+    });
   }
   
   if (cerrarModalPerfil) {
     cerrarModalPerfil.addEventListener('click', () => window.closeOverlayModal(modalPerfil));
+  }
+
+  // Botón editar perfil
+  const btnEditarPerfil = document.getElementById('btn-editar-perfil');
+  if (btnEditarPerfil) {
+    btnEditarPerfil.addEventListener('click', () => {
+      mostrarVistaEdicion();
+    });
+  }
+
+  // Botón cancelar edición
+  const btnCancelarEdicion = document.getElementById('btn-cancelar-edicion');
+  if (btnCancelarEdicion) {
+    btnCancelarEdicion.addEventListener('click', () => {
+      mostrarVistaVisualizacion();
+    });
+  }
+
+  // Formulario de perfil
+  const formPerfil = document.getElementById('form-perfil');
+  if (formPerfil) {
+    formPerfil.addEventListener('submit', (e) => {
+      e.preventDefault();
+      guardarPerfil();
+    });
   }
 
   // --- CERRAR SESIÓN ---
@@ -609,7 +682,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (btnRestart) {
     btnRestart.addEventListener('click', () => {
       localStorage.removeItem('endTime');
-      window.location.href = '/juego.php';
+      localStorage.removeItem('gameStartTime'); // Limpiar tiempo de inicio
+      localStorage.removeItem('totalPistasUsadas'); // Limpiar contador de pistas
+      window.location.href = '/escaperoom/juego.php';
     });
   }
 
@@ -619,40 +694,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const hash = window.location.hash.replace('#', '');
     const seccion = document.getElementById(hash);
     
-    // Aplicar penalización de 2 minutos cuando se regresa desde módulos
+    // Limpiar las marcas de regreso (sin aplicar penalizaciones)
     const regresoDesde = localStorage.getItem('regresoDesdeModulo');
     const tiempoRegreso = localStorage.getItem('tiempoRegreso');
     
-    // Verificar que el regreso sea reciente (menos de 5 segundos) para evitar penalizaciones múltiples
     if (regresoDesde && tiempoRegreso && (Date.now() - parseInt(tiempoRegreso)) < 5000) {
-      // Aplicar penalización según la escena de destino
-      const esEscenaDestino = (hash === 'escena-templo' && regresoDesde === 'sudoku') ||
-                             (hash === 'escena-jungla' && regresoDesde === 'mapa');
-      
-      if (esEscenaDestino && window.gameMode === 'time' && window.timeLeft > 0) {
-        window.timeLeft = Math.max(0, window.timeLeft - 120); // 2 minutos de penalización
-        localStorage.setItem('timeLeft', window.timeLeft);
-        
-        // Actualizar el endTime para reflejar la penalización
-        const newEndTime = Date.now() + (window.timeLeft * 1000);
-        localStorage.setItem('endTime', newEndTime);
-        
-        window.updateTimerDisplay();
-        
-        // Mostrar notificación de penalización
-        setTimeout(() => {
-          alert(`Penalización aplicada: -2 minutos por regresar desde ${regresoDesde}`);
-        }, 500);
-        
-        if (window.timeLeft <= 0) {
-          clearInterval(window.timerInterval);
-          alert("¡Se acabó el tiempo! Fin del juego.");
-          window.inicializarJuego();
-          return;
-        }
-      }
-      
-      // Limpiar las marcas de regreso para evitar penalizaciones múltiples
+      // Solo limpiar las marcas sin aplicar penalizaciones
       localStorage.removeItem('regresoDesdeModulo');
       localStorage.removeItem('tiempoRegreso');
     }
@@ -669,6 +716,16 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- EVENTOS PRINCIPALES ---
   if (btnComenzar) {
     btnComenzar.addEventListener("click", () => {
+      // Inicializar tiempo de inicio del juego
+      if (!localStorage.getItem('gameStartTime')) {
+        localStorage.setItem('gameStartTime', Date.now());
+      }
+      
+      // Limpiar contador de pistas si es una nueva partida
+      if (!localStorage.getItem('totalPistasUsadas')) {
+        localStorage.setItem('totalPistasUsadas', 0);
+      }
+      
       // No forzar el gameMode aquí, mantener el modo seleccionado previamente
       // Solo cambiar a modo score si no se ha seleccionado ningún modo
       if (!window.gameMode) {
@@ -683,8 +740,8 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (window.gameMode === 'time') {
         document.getElementById("score-container").style.display = "none";
         document.getElementById("timer-container").style.display = "block";
-        // Asegurar que el timer esté funcionando
-        if (!window.timerInterval) {
+        // Solo inicializar timer si no existe uno activo y no hay un timer guardado
+        if (window.globalTimer && !window.globalTimer.isActive() && !localStorage.getItem('endTime')) {
           window.startTimer();
         }
       }
@@ -708,6 +765,11 @@ document.addEventListener("DOMContentLoaded", () => {
       window.gameMode = 'time';
       localStorage.setItem('gameMode', 'time'); // Guardar en localStorage
       
+      // Inicializar tiempo de inicio del juego si no existe
+      if (!localStorage.getItem('gameStartTime')) {
+        localStorage.setItem('gameStartTime', Date.now());
+      }
+      
       // Configurar el timer global
       if (window.globalTimer) {
         window.globalTimer.setGameMode('time');
@@ -715,7 +777,12 @@ document.addEventListener("DOMContentLoaded", () => {
       
       document.getElementById("score-container").style.display = "none";
       document.getElementById("timer-container").style.display = "block";
-      window.startTimer();
+      
+      // Solo inicializar nuevo timer si no hay uno existente
+      if (!localStorage.getItem('endTime')) {
+        window.startTimer();
+      }
+      
       window.cambiarPantalla(pantallaModoJuego, pantallaBienvenida);
     });
   }
@@ -744,8 +811,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnContinuarSudoku = document.getElementById('btn-continuar-sudoku');
   if (btnContinuarSudoku) {
     btnContinuarSudoku.addEventListener('click', function() {
-      window.location.hash = 'escena-jungla';
-      mostrarPantallaSegunHash();
+      window.location.href = "mapa/mapa.php";
     });
   }
 
@@ -813,13 +879,141 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Iniciar el juego por primera vez solo si no hay un timer activo
-  if (!localStorage.getItem('endTime')) {
-    window.inicializarJuego();
-  } else {
-    // Forzar inicialización para evitar problemas
-    localStorage.removeItem('endTime');
-    window.inicializarJuego();
+  // Solo inicializar el juego si estamos en la página principal (juego.php)
+  // y no en un módulo específico (sudoku, mapa, etc.)
+  const isMainGamePage = window.location.pathname.endsWith('juego.php') || 
+                        window.location.pathname.endsWith('/') ||
+                        window.location.pathname.indexOf('juego.php') !== -1;
+  
+  if (isMainGamePage) {
+    // Iniciar el juego por primera vez solo si no hay un timer activo
+    if (!localStorage.getItem('endTime')) {
+      window.inicializarJuego();
+    } else {
+      // Forzar inicialización para evitar problemas
+      localStorage.removeItem('endTime');
+      window.inicializarJuego();
+    }
+  }
+
+  // Función para alternar entre rankings
+  window.showRanking = function(tipo) {
+    const btnPuntos = document.getElementById('btn-puntos');
+    const btnTiempo = document.getElementById('btn-tiempo');
+    const rankingPuntos = document.getElementById('ranking-puntos');
+    const rankingTiempo = document.getElementById('ranking-tiempo');
+    
+    if (tipo === 'puntos') {
+      btnPuntos.classList.add('active');
+      btnTiempo.classList.remove('active');
+      rankingPuntos.classList.add('active');
+      rankingTiempo.classList.remove('active');
+    } else {
+      btnTiempo.classList.add('active');
+      btnPuntos.classList.remove('active');
+      rankingTiempo.classList.add('active');
+      rankingPuntos.classList.remove('active');
+    }
+  };
+
+  // --- FUNCIONES DE PERFIL ---
+  function cargarPerfil() {
+    fetch('controller/perfilController.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar vista de visualización
+                const nombreDisplay = document.getElementById('perfil-nombre-display');
+                const emailDisplay = document.getElementById('perfil-email-display');
+                
+                if (nombreDisplay) nombreDisplay.textContent = data.usuario.nombre || 'Sin nombre';
+                if (emailDisplay) emailDisplay.textContent = data.usuario.email || 'Sin email';
+                
+                // Actualizar campos de edición
+                const nombreInput = document.getElementById('perfil-nombre');
+                const emailInput = document.getElementById('perfil-email');
+                
+                if (nombreInput) nombreInput.value = data.usuario.nombre || '';
+                if (emailInput) emailInput.value = data.usuario.email || '';
+                
+                // Mostrar vista de visualización
+                mostrarVistaVisualizacion();
+            } else {
+                console.error('Error al cargar perfil:', data.mensaje);
+            }
+        })
+        .catch(error => {
+            console.error('Error cargando perfil:', error);
+        });
+  }
+
+  function guardarPerfil() {
+    const nombreInput = document.getElementById('perfil-nombre');
+    const emailInput = document.getElementById('perfil-email');
+    
+    if (!nombreInput || !emailInput) {
+        alert('Error: No se encontraron los campos del formulario.');
+        return;
+    }
+    
+    const nombre = nombreInput.value.trim();
+    const email = emailInput.value.trim();
+    
+    if (!nombre || !email) {
+        alert('Por favor, completa todos los campos.');
+        return;
+    }
+    
+    if (!email.includes('@') || !email.includes('.')) {
+        alert('Por favor, ingresa un email válido.');
+        return;
+    }
+    
+    const perfilData = { nombre, email };
+    
+    fetch('controller/perfilController.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(perfilData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Perfil actualizado con éxito.');
+            
+            // Actualizar la vista de visualización con los nuevos datos
+            const nombreDisplay = document.getElementById('perfil-nombre-display');
+            const emailDisplay = document.getElementById('perfil-email-display');
+            
+            if (nombreDisplay) nombreDisplay.textContent = nombre;
+            if (emailDisplay) emailDisplay.textContent = email;
+            
+            // Volver a la vista de visualización
+            mostrarVistaVisualizacion();
+        } else {
+            alert('Error al actualizar perfil: ' + data.mensaje);
+        }
+    })
+    .catch(error => {
+        console.error('Error guardando perfil:', error);
+        alert('Error al guardar el perfil. Inténtalo de nuevo.');
+    });
+  }
+
+  function mostrarVistaVisualizacion() {
+    const vistaVisualizacion = document.getElementById('perfil-vista');
+    const vistaEdicion = document.getElementById('perfil-edicion');
+    
+    if (vistaVisualizacion) vistaVisualizacion.style.display = 'block';
+    if (vistaEdicion) vistaEdicion.style.display = 'none';
+  }
+
+  function mostrarVistaEdicion() {
+    const vistaVisualizacion = document.getElementById('perfil-vista');
+    const vistaEdicion = document.getElementById('perfil-edicion');
+    
+    if (vistaVisualizacion) vistaVisualizacion.style.display = 'none';
+    if (vistaEdicion) vistaEdicion.style.display = 'block';
   }
 
 });

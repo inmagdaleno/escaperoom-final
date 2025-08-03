@@ -182,8 +182,10 @@ class GlobalTimer {
   }
 }
 
-// Crear instancia global
-window.globalTimer = new GlobalTimer();
+// Crear instancia global solo si no existe
+if (!window.globalTimer) {
+  window.globalTimer = new GlobalTimer();
+}
 
 // Funciones de utilidad globales para compatibilidad
 window.formatTime = function(seconds) {
@@ -231,14 +233,75 @@ window.showGameOver = function() {
   if (video) {
     video.play();
   }
+  
+  // Guardar partida como fallida
+  window.saveGameOverData();
 };
 
-// Configurar callbacks del timer global
-if (window.globalTimer) {
+// Función para guardar datos de game over
+window.saveGameOverData = function() {
+  const gameMode = localStorage.getItem('gameMode') || 'score';
+  const gameStartTime = parseInt(localStorage.getItem('gameStartTime')) || Date.now();
+  const gameEndTime = Date.now();
+  const tiempoEmpleado = Math.floor((gameEndTime - gameStartTime) / 1000); // en segundos
+  const totalPistasUsadas = parseInt(localStorage.getItem('totalPistasUsadas')) || 0;
+  
+  // Determinar en qué prueba se quedó (basado en la URL actual)
+  let idPrueba = 1; // Por defecto mapa (mensaje)
+  const currentPath = window.location.pathname;
+  if (currentPath.includes('sudoku')) {
+    idPrueba = 4;
+  } else if (currentPath.includes('mapa')) {
+    idPrueba = 3; // puzzle
+  } else if (currentPath.includes('Final')) {
+    idPrueba = 5; // final
+  }
+  
+  let puntuacionFinal = null;
+  if (gameMode === 'score') {
+    puntuacionFinal = parseInt(localStorage.getItem('score')) || 0;
+  }
+  
+  const gameData = {
+    id_prueba: idPrueba,
+    tiempo_empleado: tiempoEmpleado,
+    pistas_usadas: totalPistasUsadas,
+    puntuacion_final: puntuacionFinal,
+    resultado: 0, // 0 para fallo (tiempo agotado)
+    modo_juego: gameMode === 'score' ? 'puntos' : 'tiempo',
+    tiempo_restante_final: 0 // Tiempo agotado
+  };
+  
+  console.log('Guardando partida fallida con datos:', gameData);
+  
+  // Enviar datos al servidor
+  fetch('controller/guardarPartida.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(gameData),
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      console.log('Partida fallida guardada exitosamente en la base de datos');
+    } else {
+      console.error('Error al guardar partida fallida:', data.mensaje);
+    }
+  })
+  .catch((error) => {
+    console.error('Error de conexión al guardar partida fallida:', error);
+  });
+};
+
+// Configurar callbacks del timer global (solo si no están ya configurados)
+if (window.globalTimer && !window.globalTimer.callbacksConfigured) {
   // Callback para actualizar displays
   window.globalTimer.onUpdate(window.updateAllTimerDisplays);
   window.globalTimer.onTick(window.updateAllTimerDisplays);
   
   // Callback para game over
   window.globalTimer.onTimeUp(window.showGameOver);
+  
+  // Marcar como configurado para evitar duplicaciones
+  window.globalTimer.callbacksConfigured = true;
 }

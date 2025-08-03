@@ -17,12 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     ORDER BY p.puntuacion_final DESC, p.fecha_partida ASC
                     LIMIT 10";
 
-    // Ranking por tiempo
-    $query_time = "SELECT COALESCE(NULLIF(u.nombre, ''), u.email) AS jugador, p.tiempo_restante_final AS valor
+    // Ranking por tiempo (ordenado por menor tiempo empleado = mejor)
+    $query_time = "SELECT COALESCE(NULLIF(u.nombre, ''), u.email) AS jugador, p.tiempo_empleado AS valor
                    FROM partida p
                    JOIN usuarios u ON p.id_usuario = u.id
-                   WHERE p.modo_juego = 'tiempo' AND p.resultado = 1 AND p.tiempo_restante_final IS NOT NULL
-                   ORDER BY p.tiempo_restante_final DESC, p.fecha_partida ASC
+                   WHERE p.modo_juego = 'tiempo' AND p.resultado = 1 AND p.tiempo_empleado IS NOT NULL
+                   ORDER BY p.tiempo_empleado ASC, p.fecha_partida ASC
                    LIMIT 10";
 
     $ranking = ['score' => [], 'time' => []];

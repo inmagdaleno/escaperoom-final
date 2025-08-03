@@ -76,23 +76,50 @@ if (!isset($_SESSION['usuario_id'])) {
     <div class="modal-contenido">
       <span class="cerrar" id="cerrar-modal-perfil">&times;</span>
       <h2>Perfil de Usuario</h2>
-      <span><?php echo htmlspecialchars($_SESSION['nombre']); ?></span>
-      <form id="form-perfil">
-        <div class="perfil-img-container">
-          <img id="perfil-img-preview" src="../img/avatar.webp" alt="Imagen de perfil">
-          <input type="file" id="input-perfil-img" accept="image/*" style="display: none;">
-          <button type="button" id="btn-cambiar-img" class="btn-pista-secundario">Cambiar Imagen</button>
+      
+      <!-- Vista de visualización del perfil -->
+      <div id="perfil-vista" class="perfil-vista">
+        <div class="perfil-info-container">
+          <div class="perfil-img-container">
+            <img id="perfil-img-display" src="../img/avatar.webp" alt="Imagen de perfil">
+          </div>
+          <div class="perfil-datos">
+            <div class="perfil-campo">
+              <strong>Nombre:</strong>
+              <span id="perfil-nombre-display">-</span>
+            </div>
+            <div class="perfil-campo">
+              <strong>Email:</strong>
+              <span id="perfil-email-display">-</span>
+            </div>
+          </div>
         </div>
-        <div class="form-grupo">
-          <label for="perfil-nombre">Nombre:</label>
-          <input type="text" id="perfil-nombre" name="nombre" placeholder="Tu nombre">
+        <div class="perfil-acciones">
+          <button type="button" id="btn-editar-perfil" class="btn-pista-primario">Editar Perfil</button>
         </div>
-        <div class="form-grupo">
-          <label for="perfil-email">Email:</label>
-          <input type="email" id="perfil-email" name="email" placeholder="Tu correo electrónico">
-        </div>
-        <button type="submit" id="btn-guardar-perfil" class="btn-pista-primario btn-primary-gradient">Guardar Cambios</button>
-      </form>
+      </div>
+      
+      <!-- Vista de edición del perfil -->
+      <div id="perfil-edicion" class="perfil-edicion" style="display: none;">
+        <form id="form-perfil">
+          <div class="perfil-img-container">
+            <img id="perfil-img-preview" src="../img/avatar.webp" alt="Imagen de perfil">
+            <input type="file" id="input-perfil-img" accept="image/*" style="display: none;">
+            <button type="button" id="btn-cambiar-img" class="btn-pista-secundario">Cambiar Imagen</button>
+          </div>
+          <div class="form-grupo">
+            <label for="perfil-nombre">Nombre:</label>
+            <input type="text" id="perfil-nombre" name="nombre" placeholder="Tu nombre">
+          </div>
+          <div class="form-grupo">
+            <label for="perfil-email">Email:</label>
+            <input type="email" id="perfil-email" name="email" placeholder="Tu correo electrónico">
+          </div>
+          <div class="perfil-acciones">
+            <button type="submit" id="btn-guardar-perfil" class="btn-pista-primario" style="margin: 0 auto; display: block;">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -101,18 +128,41 @@ if (!isset($_SESSION['usuario_id'])) {
     <div class="modal-contenido">
       <span class="cerrar" id="cerrar-modal-ranking">&times;</span>
       <h2>Ranking de Jugadores</h2>
-      <table id="tabla-ranking">
-        <thead>
-          <tr>
-            <th>Puesto</th>
-            <th>Jugador</th>
-            <th>Puntuación</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Las filas del ranking se insertarán aquí con JavaScript -->
-        </tbody>
-      </table>
+      
+      <div class="ranking-buttons">
+        <button id="btn-puntos" class="ranking-btn active" onclick="showRanking('puntos')">Por Puntos</button>
+        <button id="btn-tiempo" class="ranking-btn" onclick="showRanking('tiempo')">Por Tiempo</button>
+      </div>
+      
+      <div id="ranking-puntos" class="ranking-table active">
+        <table id="tabla-ranking-puntos">
+          <thead>
+            <tr>
+              <th>Posición</th>
+              <th>Jugador</th>
+              <th>Puntuación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Los datos se cargan dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+      
+      <div id="ranking-tiempo" class="ranking-table">
+        <table id="tabla-ranking-tiempo">
+          <thead>
+            <tr>
+              <th>Posición</th>
+              <th>Jugador</th>
+              <th>Tiempo</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Los datos se cargan dinámicamente -->
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -129,14 +179,14 @@ if (!isset($_SESSION['usuario_id'])) {
 
     <div id="dragZoneContainer">
       <h1>El Tablero de los Ancestros</h1>
-      <p>Arrastra las runas hasta su posición correcta en el tablero. ¡No repitas símbolos ni en filas, ni en columnas ni en cada uno de los cuadrantes marcados en rojo!</p>
+      <p id="mensaje-instrucciones">Arrastra las runas hasta su posición correcta en el tablero. ¡No repitas símbolos ni en filas, ni en columnas ni en cada uno de los cuadrantes marcados en rojo!</p>
       <div id="dragZone" class="drag-zone"></div>
       <div id="smallButtonsContainer">
         <button onclick="limpiar()">Limpiar Tablero</button>
         <button onclick="verificar()">Verificar</button>
       </div>
       <div id="solveButtonContainer">
-        <button onclick="iniciarResolucion()">Resolver</button>
+        <button id="btn-resolver">Resolver</button>
       </div>
     </div>
   </div>
@@ -161,7 +211,14 @@ if (!isset($_SESSION['usuario_id'])) {
     <audio id="audioError" src="audio/error.ogg" preload="auto"></audio>
     <audio id="audioSuccess" src="audio/success.wav" preload="auto"></audio>
 
-  
+  <!-- Pantalla con fondo tropical para el modal de pista extra del sudoku -->
+  <div id="pantalla-pista-extra-sudoku" class="pantalla-pista-tropical oculto" style="display:none;">
+    <div class="modal-contenido">
+      <h2>Pista Visual</h2>
+      <img id="img-pista-extra-sudoku" src="img/codigo-sudoku.webp" alt="Pista visual del sudoku">
+        <button id="btn-continuar-sudoku" class="btn-pista-primario btn-primary-gradient">Continuar</button>
+    </div>
+  </div>
 
   <div id="game-over-overlay" class="oculto" style="display: none;">
     <video id="game-over-video" src="../video/isla.mp4" loop></video>

@@ -41,11 +41,17 @@ p {
   display: none;
   opacity: 0;
   transition: opacity 0.3s ease-in-out;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
 }
 
 .pantalla.visible {
   display: block;
   opacity: 1;
+  position: relative;
 }
 
 #escena-jungla {
@@ -78,7 +84,7 @@ p {
 #contenido-jungla p {
   font-size: 1.2em;
   line-height: 1.6;
-  margin-bottom: 30px;
+  margin-bottom: 50px;
 }
 
 #ir-mapa {
@@ -86,13 +92,14 @@ p {
   background-size: 200% 200%;
   color: white;
   border: none;
-  padding: 12px 24px;
+  padding: 15px 30px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.4s ease;
   box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
   font-size: 16px;
+  margin-top: 30px;
 }
 
 #ir-mapa:hover {
@@ -102,10 +109,10 @@ p {
 }
 
 #escena-mapa {
-  background: linear-gradient(135deg, rgba(139, 69, 19, 0.8), rgba(160, 82, 45, 0.9)), url('../img/fondo_piedra.webp');
   background-size: cover;
   background-position: center;
   min-height: 100vh;
+  padding: 20px 0;
 }
 
 /* Botones de esquina superior derecha */
@@ -164,7 +171,107 @@ p {
   letter-spacing: 0.5px;
 }
 
-/* Estilos para el modal de perfil */
+/* Estilos para el modal de perfil con vista doble */
+.perfil-vista {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.perfil-edicion {
+  background: transparent;
+  backdrop-filter: none;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: none;
+}
+
+.perfil-info-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.perfil-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.perfil-campo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(82, 82, 82, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.perfil-campo strong {
+  color: #555555;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.perfil-campo span {
+  color: #555555;
+  flex: 1;
+  text-align: right;
+  word-break: break-word;
+}
+
+.perfil-acciones {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+#btn-editar-perfil, #btn-guardar-perfil {
+  margin-top: 10px;
+  width: 350px;
+  padding: 12px 24px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+  border: none;
+  white-space: nowrap;
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#btn-editar-perfil:hover, #btn-guardar-perfil:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+#btn-cancelar-edicion:hover {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
 #form-perfil {
   display: flex;
   flex-direction: column;
@@ -183,7 +290,7 @@ p {
   gap: 16px;
 }
 
-#perfil-img-preview {
+#perfil-img-preview, #perfil-img-display {
   width: 100px;
   height: 100px;
   border-radius: 50%;
@@ -192,12 +299,12 @@ p {
 }
 
 .form-grupo {
-  width: 100%; /* Ocupar todo el ancho disponible */
-  max-width: 400px; /* Limitar el ancho del grupo al mismo que el input */
+  width: 100%;
+  max-width: 400px;
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centrar los hijos */
-  margin: 0 auto; /* Centrar el grupo completo */
+  align-items: center;
+  margin: 0 auto;
 }
 
 .form-grupo label {
@@ -219,9 +326,8 @@ input[type="text"], input[type="email"] {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 15px 30px;
-  color: #ffffff;
-  width: 100%;
-  max-width: 400px;
+  color: #555555;
+  width: 350px;
   box-sizing: border-box;
   display: block;
   margin: 0 auto;
@@ -229,7 +335,7 @@ input[type="text"], input[type="email"] {
 }
 
 input[type="text"]::placeholder, input[type="email"]::placeholder {
-  color: #bbbbbb; /* Color de placeholder más oscuro */
+  color: #555555; /* Color de placeholder gris oscuro para mejor visibilidad */
 }
 
 /* Estilos para la tabla de ranking */
@@ -365,38 +471,44 @@ button:hover {
 }
 
 .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.8);
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
+  display: none;
+  position: fixed;
+  z-index: 2000; /* mayor que el modal1 */
+  left: 0; top: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.6);
+  justify-content: center;
+  align-items: center;
+}
+.modal-overlay[style*="display: flex"] {
+  display: flex !important;
 }
 
 .modal-contenido {
-    background: rgba(255, 255, 255, 0.26);
-    box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
-    backdrop-filter: blur(7px);
-    -webkit-backdrop-filter: blur(7px);
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    padding: 20px;
-    color: #f0f0f0;
-    width: 40vw;
-    height: 70vh;
-    max-width: 600px;
-    max-height: 90vh;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: auto;
-    text-align: center;
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 20px 20px 5px 20px;
+  color: #f0f0f0;
+  width: 40vw;
+  height: 70vh;
+  max-width: 100%;
+  max-height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+/* Estilos específicos para modales de ranking con mayor blur y opacidad */
+#modal-ranking .modal-contenido {
+    background: rgba(255, 255, 255, 0.36);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
 }
 
 .modal-contenido h2 {
@@ -430,7 +542,7 @@ button:hover {
 }
 
 .modal-image {
-    max-width: 80%;
+    max-width: 70%;
     height: auto;
     margin-bottom: 20px;
     border-radius: 8px;
@@ -466,10 +578,10 @@ button:hover {
     border: 1px solid rgba(255, 255, 255, 0.18);
     padding: 20px 20px 30px 20px;
     color: #f0f0f0;
-    width: 40vw;
+    width: calc(40vw + 40px);
     height: auto;
-    max-width: 600px;
-    max-height: 85vh;
+    max-width: 640px;
+    max-height: 90vh;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -494,6 +606,8 @@ button:hover {
     font-weight: 650;
     margin-bottom: 20px;
     color: #f0f0f0;
+    width: 90%;
+    max-width: 550px;
 }
 
 .close-button {
@@ -508,14 +622,6 @@ button:hover {
 
 .close-button:hover {
     color: #ff00f0;
-}
-
-#btn-guardar-perfil {
-  margin-top: 10px;
-  width: 100%;
-  max-width: 400px;
-  padding: 12px 24px;
-  box-sizing: border-box;
 }
 
 /* Score Display */
@@ -581,21 +687,34 @@ body {
   font-family: sans-serif;
   text-align: center;
   background-image: url('img/fondo_piedra.webp');
-  background-size: cover;
-  background-position: center;
+  background-size: calc(100% + 100px); /* Aumentar el tamaño para permitir desplazamiento sin perder cobertura */
+  background-position: -50px center; /* Centrar ambas imágenes con el mismo desplazamiento */
   background-repeat: no-repeat;
   height: 100vh;
   width: 100vw;
   margin: 0;
-  overflow: hidden;
+  overflow: auto; /* Permitir scroll */
   background-color: #222;
   transition: background-image 1.5s cubic-bezier(.4,0,.2,1), background-color 1.5s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 70%, rgba(0, 0, 0, 0.05) 100%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 body.fondo-piedra2 {
   background-image: url('img/fondo_piedra2.webp');
-  background-size: cover;
-  background-position: center;
+  background-size: calc(100% + 100px); /* Aumentar el tamaño para permitir desplazamiento sin perder cobertura */
+  background-position: -60px center; /* Mantener la misma posición que fondo-piedra.webp */
   background-repeat: no-repeat;
   height: 100vh;
   width: 100vw;
@@ -603,6 +722,19 @@ body.fondo-piedra2 {
   overflow: hidden;
   background-color: #222;
   transition: background-image 1.5s cubic-bezier(.4,0,.2,1), background-color 1.5s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+
+body.fondo-piedra2::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.1) 70%, rgba(0, 0, 0, 0.05) 100%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 h1 {
@@ -610,128 +742,450 @@ h1 {
   font-size: 36px;
   font-weight: 700;
   color: #ffffff;
-  margin-top: 100px;
-  margin-bottom: 10px;
+  margin-top: 75px;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 2;
 }
 
 p {
   font-size: 18px;
   line-height: 26px;
   font-weight: 650;
-  margin-bottom: 60px;
+  margin-bottom: 20px;
   color: #f0f0f0;
-  width: 50%;
+  width: 75%;
   margin: 0 auto;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 2;
 }
 
 .puzzle-wrapper {
   display: flex;
   justify-content: center;
-  gap: 120px;
-  margin-bottom: 20px;
+  align-items: flex-start;
+  gap: 50px;
+  margin-top: 25px;
+  padding: 20px;
+  position: relative;
+  z-index: 2;
 }
 
 .pieces-container {
-  position: relative;
   width: 500px;
   height: 500px;
-  margin: -10px auto 20px -150px;
+  background: transparent;
+  border: none;
+  position: relative;
+  cursor: default;
+}
+
+.pieces-container:hover {
+  cursor: default;
 }
 
 .board-container {
-  display: flex;
-  flex-wrap: wrap;
   width: 500px;
   height: 500px;
-  margin: 20px auto;
-  background-color: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 10px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 0px;
+  padding: 10px;
 }
 
 .piece {
+  width: 75px;
+  height: 75px;
+  background-image: url('img/mapa.webp');
+  background-size: 450px 450px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
   position: absolute;
-  width: 83.333px;
-  height: 83.333px;
-  box-sizing: border-box;
-  background-size: 500px 500px;
-  background-repeat: no-repeat;
   cursor: grab;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 0, 0, 0.2) inset;
-  transform: rotateX(5deg) rotateY(-5deg);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+  z-index: 100;
 }
 
-.slot {
-  width: 83.333px;
-  height: 83.333px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-sizing: border-box;
-  background-color: transparent;
+.piece:hover {
+  transform: scale(1.05);
+  z-index: 101;
+  border-color: rgba(255, 255, 255, 0.8);
+  cursor: grab;
 }
 
 .piece:active {
   cursor: grabbing;
-  transform: scale(1.1) translateY(-10px);
 }
 
-.correct-slot {
-  box-shadow: 0 0 0 3px limegreen;
-}
-
-.incorrect-slot {
-  box-shadow: 0 0 0 3px crimson;
+/* Estilos para rotación de piezas */
+.piece {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .piece:hover {
-  transform: scale(1.05) translateY(-5px) rotateX(0deg) rotateY(0deg);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 0, 0, 0.3) inset;
+  transform: scale(1.05);
+  z-index: 101;
+  border-color: rgba(255, 255, 255, 0.8);
+  cursor: grab;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Animación suave para las piezas */
+.piece {
+  transition: transform 0.3s ease;
+}
+
+/* Instrucciones de ayuda */
+.puzzle-instructions {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  margin-bottom: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 10px;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.slot {
+  width: 75px;
+  height: 75px;
+  border: 1px dashed rgba(255, 255, 255, 0.6);
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.slot.drag-over {
+  background: rgba(255, 255, 255, 0.4);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: scale(1.05);
+}
+
+.slot.correct {
+  background: rgba(0, 255, 0, 0.2);
+  border: 3px solid #00ff00;
+  animation: correctPulse 0.6s ease-in-out;
+}
+
+.slot.incorrect {
+  background: rgba(255, 0, 0, 0.2);
+  border: 3px solid #ff0000;
+  animation: incorrectShake 0.6s ease-in-out;
+}
+
+.slot.incorrect-piece {
+  border: 2px solid #ff0000;
+  background: rgba(255, 0, 0, 0.1);
+}
+
+@keyframes correctPulse {
+  0% { 
+    border-color: #00ff00; 
+    box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.8);
+  }
+  50% { 
+    border-color: #00cc00;
+    box-shadow: 0 0 0 8px rgba(0, 255, 0, 0.2);
+  }
+  100% { 
+    border-color: #00ff00;
+    box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
+  }
+}
+
+@keyframes incorrectShake {
+  0%, 100% { 
+    transform: translateX(0);
+    border-color: #ff0000;
+  }
+  25% { 
+    transform: translateX(-5px);
+    border-color: #cc0000;
+  }
+  75% { 
+    transform: translateX(5px);
+    border-color: #ff3333;
+  }
+}
+
+/* Animaciones para completar el puzzle */
+@keyframes puzzleComplete {
+  0% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.6);
+  }
+  25% { 
+    transform: scale(1.02);
+    box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.4);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(255, 215, 0, 0.3);
+  }
+  75% { 
+    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(255, 215, 0, 0.15);
+  }
+  100% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 15px rgba(255, 215, 0, 0);
+  }
+}
+
+@keyframes boardGlow {
+  0% { 
+    background: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.3);
+  }
+  50% { 
+    background: rgba(255, 215, 0, 0.2);
+    box-shadow: 0 0 8px 3px rgba(255, 215, 0, 0.5);
+  }
+  100% { 
+    background: rgba(255, 255, 255, 0.18);
+    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.3);
+  }
+}
+
+@keyframes goldReflection {
+  0% { 
+    background-position: -100px 0;
+    opacity: 0;
+  }
+  50% { 
+    opacity: 1;
+  }
+  100% { 
+    background-position: 600px 0;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeOutUp {
+  0% { 
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% { 
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+/* Hint dorado sutil para piezas en posición correcta durante el juego */
+.slot.correct-gold-hint {
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  background: rgba(255, 215, 0, 0.1);
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+/* Animación de tablero dorado cuando se completa el puzzle - similar al sudoku y astrolabio */
+.puzzle-completed .board-container {
+  animation: puzzleComplete 4s ease-in-out, mapa-gold-shine 2.5s infinite alternate ease-in-out;
+  position: relative;
+  border: 6px solid transparent;
+  border-image: url('../sudoku/img/oro.webp') 6 round;
+  background-image: url('../sudoku/img/oro.webp');
+  background-size: cover;
+  background-position: center;
+  box-sizing: border-box;
+}
+
+@keyframes mapa-gold-shine {
+  0% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.15);
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 215, 0, 1), 0 0 80px rgba(255, 215, 0, 0.8);
+    transform: scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3), 0 0 20px rgba(255, 215, 0, 0.15);
+    transform: scale(1);
+    opacity: 0.7;
+  }
+}
+
+/* Animación adicional para las piezas individuales cuando están en posición correcta */
+.slot.final-gold-piece {
+  border: 3px solid transparent;
+  border-image: url('../sudoku/img/oro.webp') 3 round;
+  background-image: url('../sudoku/img/oro.webp');
+  background-size: cover;
+  background-position: center;
+  animation: piece-gold-glow 2s infinite alternate ease-in-out;
+  box-sizing: border-box;
+}
+
+@keyframes piece-gold-glow {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.8), 0 0 25px rgba(255, 215, 0, 0.5);
+    transform: scale(1.02);
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+    transform: scale(1);
+    opacity: 0.8;
+  }
+}
+
+.puzzle-completed .board-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 215, 0, 0.3) 30%, 
+    rgba(255, 215, 0, 0.6) 50%, 
+    rgba(255, 215, 0, 0.3) 70%, 
+    transparent 100%);
+  animation: goldReflection 3s ease-in-out 2;
+  pointer-events: none;
+  z-index: 110;
+}
+
+.puzzle-completed .board-container::after {
+  content: '';
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
+  background-image: url('../sudoku/img/oro.webp');
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  animation: goldOverlay 4s ease-in-out;
+  pointer-events: none;
+  z-index: 109;
+  border-radius: 10px;
+}
+
+@keyframes goldOverlay {
+  0% { 
+    opacity: 0;
+    transform: scale(0.8) rotate(-5deg);
+  }
+  30% { 
+    opacity: 0.4;
+    transform: scale(1.1) rotate(2deg);
+  }
+  60% { 
+    opacity: 0.6;
+    transform: scale(1.05) rotate(-1deg);
+  }
+  100% { 
+    opacity: 0;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.puzzle-completed .slot {
+  animation: boardGlow 1.6s ease-in-out 3;
+  border-color: rgba(255, 215, 0, 0.8) !important;
+}
+
+.fade-out-smooth {
+  animation: fadeOutUp 3s ease-out forwards;
+}
+
+/* Partículas doradas */
+.gold-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: radial-gradient(circle, #FFD700 0%, #FFA500 70%, transparent 100%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 120;
+  animation: goldParticleFloat 3s ease-out forwards;
+}
+
+@keyframes goldParticleFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-20px) scale(1) rotate(90deg);
+  }
+  80% {
+    opacity: 0.8;
+    transform: translateY(-60px) scale(1.2) rotate(270deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100px) scale(0) rotate(360deg);
+  }
 }
 
 /* Fondo de transición al completar el mapa */
 body.fondo-piedra2 {
   background-image: url('img/fondo_piedra2.webp');
-  background-size: cover;
-  background-position: center;
+  background-size: calc(100% + 100px); /* Aumentar el tamaño para permitir desplazamiento sin perder cobertura */
+  background-position: -50px center; /* Desplazar 50px hacia la izquierda */
   background-repeat: no-repeat;
   background-color: #222;
-  transition: background-image 1.2s ease-in-out, background-color 1.2s;
+  transition: background-image 2.5s ease-in-out, background-color 2.5s ease-in-out;
+}
+
+/* Transición suave del degradado al cambiar de fondo */
+body.transitioning::before {
+  transition: background 2.5s ease-in-out;
 }
  
 #btn-examinar-mapa {
   background: linear-gradient(45deg, #ff00f0, #00ffbf);
   background-size: 200% 200%;
+  animation: animated-gradient 3s ease-in-out infinite;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 15px 20px;
+  border-radius: 10px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.4s ease;
   box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
-  font-size: 16px;
-  min-width: 150px;
+  font-size: 20px;
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 3000;
+  transform: translateX(-50%);
+  z-index: 1500;
 }
 
 #btn-examinar-mapa:hover {
   background-position: 100% 100%;
-  transform: translate(-50%, -50%) translateY(-2px);
+  transform: translateX(-50%) translateY(-2px);
   color: #e7fef6;
-}
-
-#btn-examinar-mapa.visible {
-  opacity: 1;
-}
-
-/* animación de desvanecimiento para los elementos que desaparecen */
-.fade-out {
-  opacity: 0 !important;
-  transition: opacity 3s;
 }
 
 /* Estilos para game over overlay */
@@ -807,29 +1261,6 @@ body.fondo-piedra2 {
   background: linear-gradient(45deg, #ee5a24, #ff6b6b);
 }
 
-/* Estilos para score y timer - heredados del juego principal */
-#score-container, #timer-container {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(45deg, #ff00f0, #00ffbf);
-  background-size: 200% 200%;
-  animation: animated-gradient 3s ease-in-out infinite;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 10px;
-  font-size: 20px;
-  z-index: 1000;
-  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
-}
-
-@keyframes animated-gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 /* Estilos para el contenido de la jungla */
 #contenido-jungla {
   position: fixed;
@@ -863,14 +1294,14 @@ body.fondo-piedra2 {
   font-weight: 700;
   color: #f0f0f0;
   margin-bottom: 15px; /* Reducido el margen */
-  margin-top: 0; /* Asegurar que no hay margen superior */
+  margin-top: 20px; /* Asegurar que no hay margen superior */
 }
 
 #contenido-jungla p {
   font-size: 16px; /* Aumentado para mayor legibilidad */
   line-height: 26px; /* Reducido para compactar verticalmente */
   font-weight: 650;
-  margin-bottom: 15px; /* Reducido el margen */
+  margin-bottom: 25px; /* Reducido el margen */
   color: #f0f0f0;
   text-align: center;
   max-width: 95%; /* Aumentado para ocupar más ancho y tener menos líneas */
@@ -878,8 +1309,8 @@ body.fondo-piedra2 {
 }
 
 #contenido-jungla button {
-  margin-top: 0px; /* Eliminado margen superior */
-  margin-bottom: 5px; /* Reducido el margen inferior */
+ 
+  margin-bottom: 20px; /* Reducido el margen inferior */
 }
 
 /* Asegurar que el fondo de la jungla tenga la imagen correcta */
@@ -891,5 +1322,77 @@ body.fondo-piedra2 {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* ===== ESTILOS PARA RANKING CON BOTONES GLASS ===== */
+.ranking-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.ranking-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+  border: none;
+  white-space: nowrap;
+  max-width: 200px;
+  backdrop-filter: blur(6px) saturate(180%);
+  background: rgba(255, 255, 255, 0.1);
+  color: #3b3b3b;
+}
+
+.ranking-btn:hover {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.ranking-btn.active {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.ranking-table {
+  display: none;
+}
+
+.ranking-table.active {
+  display: block;
+}
+
+/* Estilos originales de tabla de sudoku.php */
+.ranking-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.ranking-table th, .ranking-table td {
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  text-align: left;
+}
+
+.ranking-table th {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+}
+
+.ranking-table tbody tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ranking-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 

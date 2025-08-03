@@ -2,14 +2,16 @@
 .error-message {
     color: #e74c3c;
     font-size: 14px;
-    margin-top: 5px;
+    margin: 5px auto;
+    text-align: center;
 }
 
 /* Mensaje de éxito */
 .success-message {
     color: #27ae60;
     font-size: 14px;
-    margin-top: 5px;
+    margin: 5px auto;
+    text-align: center;
 }
 
 /* Borde rojo en campos inválidos */

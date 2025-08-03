@@ -53,9 +53,8 @@ input[type="text"], input[type="email"] {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 15px 30px;
-  color: #ffffff;
-  width: 100%;
-  max-width: 400px;
+  color: #555555;
+  width: 350px;
   box-sizing: border-box;
   display: block;
   margin: 0 auto;
@@ -63,7 +62,7 @@ input[type="text"], input[type="email"] {
 }
 
 input[type="text"]::placeholder, input[type="email"]::placeholder {
-  color: #bbbbbb;
+  color: #555555; /* Color de placeholder gris oscuro para mejor visibilidad */
 }
 
 /* Estilos para la tabla de ranking */
@@ -90,6 +89,78 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
 }
 
 #tabla-ranking tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== ESTILOS PARA RANKING CON BOTONES GLASS ===== */
+.ranking-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.ranking-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+  border: none;
+  white-space: nowrap;
+  max-width: 200px;
+  backdrop-filter: blur(6px) saturate(180%);
+  background: rgba(255, 255, 255, 0.1);
+  color: #3b3b3b;
+}
+
+.ranking-btn:hover {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.ranking-btn.active {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.ranking-table {
+  display: none;
+}
+
+.ranking-table.active {
+  display: block;
+}
+
+/* Estilos originales de tabla para ranking */
+.ranking-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.ranking-table th, .ranking-table td {
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  text-align: left;
+}
+
+.ranking-table th {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+}
+
+.ranking-table tbody tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ranking-table tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -179,6 +250,13 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   overflow: auto;
 }
 
+/* Estilos específicos para modales de ranking con mayor blur y opacidad */
+#modal-ranking .modal-contenido {
+  background: rgba(255, 255, 255, 0.36);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
 .oculto {
   display: none;
 }
@@ -230,7 +308,7 @@ p {
   filter: drop-shadow(-20px 20px 20px rgba(0, 0, 0, 0.8));
 }
 
-table {
+#sudoku {
   border-collapse: separate;
   border-spacing: 0;
   margin: 0 auto;
@@ -252,12 +330,12 @@ td {
 .solved-gold {
   border: 6px solid transparent;
   box-sizing: border-box;
-  animation: glow 2s infinite alternate;
+  animation: glow 6s infinite alternate;
   border-image: url('img/oro.webp') 6 round;
   background-image: url('img/oro.webp');
   background-size: cover;
   background-position: center;
-  animation: shine-glow 2.5s infinite alternate ease-in-out; /* Longer duration, smoother timing */
+  animation: shine-glow 7.5s infinite alternate ease-in-out; /* Duración triplicada para mayor atención */
 }
 
 @keyframes glow {
@@ -315,22 +393,24 @@ td {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 30px;
+  margin-top: 40px;
   margin-left: 40px;
   justify-content: space-between;
   height: 560px;
 }
 
 #dragZoneContainer p {
-  width: 500px;
+  width: 540px;
+  font-size: 15px;
+  margin-bottom: 30px;
 }
 
 .drag-zone {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px 40px;
-  height: 280px;
-  width: 200px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px 20px;
+  height: 180px;
+  width: 260px;
   justify-items: center;
   align-items: center;
 }
@@ -359,7 +439,7 @@ td {
 #smallButtonsContainer {
   display: flex;
   gap: 16px;
-  margin-top: 40px;
+  margin-top: 50px;
   justify-content: center;
 }
 
@@ -503,17 +583,17 @@ input[type="text"], input[type="email"] {
   -webkit-backdrop-filter: blur(7px);
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 12px 24px;
-  color: #ffffff;
-  width: 100%; /* Ocupar el 100% del ancho del .form-grupo */
-  max-width: 400px;
+  padding: 15px 30px;
+  color: #555555;
+  width: 350px;
   box-sizing: border-box;
-  display: block; /* Asegura que el input se comporte como un bloque */
-  margin: 0 auto; /* Centrar el input */
+  display: block;
+  margin: 0 auto;
+  margin-top: 10px;
 }
 
 input[type="text"]::placeholder, input[type="email"]::placeholder {
-  color: #bbbbbb; /* Color de placeholder más oscuro */
+  color: #555555; /* Color de placeholder gris oscuro para mejor visibilidad */
 }
 
 #score-container,
@@ -590,77 +670,11 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   justify-content: center;
 }
 
-.btn-pista-primario, 
-.btn-pista-secundario {
-  flex: 1;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.4s ease;
-  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
-  font-size: 16px;
-  border: none;
-  white-space: nowrap;
-  max-width: 200px; /* Adjust as needed for desired button size */
-}
-
-.btn-pista-primario:hover {
-  background-position: 100% 100%;
-  transform: translateY(-2px);
-  color: #e7fef6;
-}
-
-.btn-pista-secundario {
-  backdrop-filter: blur(6px) saturate(180%);
-  background: rgba(255, 255, 255, 0.1);
-  color: #3b3b3b;
-}
-
-.btn-pista-secundario:hover {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 0 15px rgba(128, 0, 128, 0.6);
-  transform: translateY(-2px);
-  color: #e7fef6;
-}
-
-.modal {
-  display: none;
-  position: fixed;
-  top: 0; 
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,0.8);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
 .modal-overlay {
   z-index: 2000;
 }
 
-.modal-contenido {
-  background: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
-  backdrop-filter: blur(7px);
-  -webkit-backdrop-filter: blur(7px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  padding: 20px 20px 5px 20px; /* Top, Right, Bottom, Left */
-  color: #1a1a1a;
-  width: 40vw; /* Ocupa el 40% del ancho de la ventana (20% más estrecho) */
-  height: 70vh; /* Ocupa el 70% del alto de la ventana */
-  max-width: 100%; /* Asegura que no sea demasiado grande en pantallas pequeñas */
-  max-height: 100%; /* Asegura que no sea demasiado grande en pantallas pequeñas */
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: auto; /* Para manejar el desbordamiento de contenido */
-}
+
 
 .modal-contenido h2 {
   color: white;
@@ -670,7 +684,7 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
 
 #pista-explicacion, #feedback-pista {
   text-align: center;
-  padding: 0 40px;
+  padding: 0 20px;
 }
 
 .modal-contenido img {
@@ -682,12 +696,100 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   justify-content: center;
 }
 
-#btn-guardar-perfil {
+#btn-guardar-perfil, #btn-editar-perfil {
   margin-top: 10px;
-  width: 100%; /* Ocupar el 100% del ancho del .form-grupo */
+  width: 350px;
+  padding: 12px 24px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+  border: none;
+  white-space: nowrap;
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#btn-guardar-perfil:hover, #btn-editar-perfil:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+/* Nuevos estilos para el perfil con vista y edición */
+.perfil-vista {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.perfil-info-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.perfil-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
   max-width: 400px;
-  padding: 12px 24px; /* Ajustar el padding para que coincida con los inputs */
-  box-sizing: border-box; /* Asegurar que el padding se incluya en el ancho */
+}
+
+.perfil-campo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(82, 82, 82, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.perfil-campo strong {
+  color: #555555;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.perfil-campo span {
+  color: #555555;
+  flex: 1;
+  text-align: right;
+  word-break: break-word;
+}
+
+.perfil-acciones {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+/* Estilo adicional para imagen de visualización */
+#perfil-img-display {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.5);
 }
 
 #feedback-puzzle1 {
@@ -731,14 +833,14 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
 }
 
 #modal-pergamino-sudoku .modal-contenido {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.26);
   box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
   backdrop-filter: blur(7px);
   -webkit-backdrop-filter: blur(7px);
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 20px;
-  color: #1a1a1a;
+  color: #f0f0f0;
   width: 50vw; /* Ajustar el ancho para la imagen del pergamino */
   max-width: 600px;
   height: auto; /* Ajustar la altura automáticamente */
@@ -791,81 +893,59 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
     z-index: 2000; /* Ensure it's on top */
 }
 
-.modal-content {
-    background: rgba(255, 255, 255, 0.2); /* Semi-transparent background */
-    box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
-    backdrop-filter: blur(7px); /* Glass effect */
-    -webkit-backdrop-filter: blur(7px);
-    border-radius: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    padding: 20px;
-    color: #fff; /* White text for contrast */
-    width: 50vw;
-    max-width: 600px;
-    height: auto;
-    max-height: 90vh;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: auto;
-    text-align: center;
-}
 
-.modal-content h2 {
-    color: white;
-    font-family: "Barriecito";
-    font-size: 28px;
-    margin-bottom: 15px;
 
-}
-
-.modal-content p {
-    font-size: 18px;
-    margin-bottom: 20px;
-    font-weight: 400;
-}
-
-.modal-image {
-    max-width: 80%;
-    height: auto;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-}
-
-.continue-button{
-  background: linear-gradient(45deg, #ff00f0, #00ffbf);
-  background-size: 200% 200%;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.4s ease;
-  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
-  font-size: 16px;
-}
-.continue-button:hover {
-  background-position: 100% 100%;
-  transform: translateY(-2px);
-  color: #e7fef6;
-}
-
-.close-button {
+/* Estilo estándar para botones cerrar - consistente con juego.php */
+.cerrar {
     position: absolute;
-    top: 15px;
-    right: 25px;
-    font-size: 35px;
+    top: 20px;
+    right: 30px;
+    font-size: 30px;
     color: white;
     cursor: pointer;
+    z-index: 2002;
     transition: color 0.3s ease;
 }
 
-.close-button:hover {
-    color: #ff00f0; /* Highlight on hover */
+.modal .cerrar {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 30px;
+    color: white;
+    cursor: pointer;
+    z-index: 2002;
+    transition: color 0.3s ease;
+}
+
+.cerrar:hover {
+    color: #ff00f0;
+}
+
+.modal .cerrar:hover {
+    color: #ff00f0;
+}
+
+.continue-button {
+    background: linear-gradient(45deg, #ff00f0, #00ffbf);
+    background-size: 200% 200%;
+    padding: 15px 30px;
+    font-size: 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.4s ease;
+}
+
+.continue-button:hover {
+    background-position: 100% 100%;
+    transform: translateY(-2px);
+    color: #e7fef6;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .continue-button {
@@ -964,4 +1044,119 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(238, 90, 36, 0.6);
   background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+}
+
+/* Pantalla con fondo tropical para el modal de pista extra del sudoku */
+.pantalla-pista-tropical {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('img/fondoTropical.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 30px;
+}
+
+.pantalla-pista-tropical .modal-overlay {
+  display: none !important;
+}
+
+.pantalla-pista-tropical .modal-contenido {
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 20px;
+  color: #f0f0f0;
+  width: 63vw;
+  max-width: 560px;
+  height: auto;
+  max-height: 70vh;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 5001;
+}
+
+.pantalla-pista-tropical .modal-contenido h2 {
+  color: #e7fef6;
+  font-family: "Barriecito";
+  font-size: 32px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+  margin-bottom: 20px;
+}
+
+.pantalla-pista-tropical .modal-contenido img {
+  width: 56vw !important;
+  max-width: 560px;
+  height: auto;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 20px;
+  display: block !important;
+  position: static !important;
+  flex-direction: initial !important;
+  align-items: initial !important;
+  justify-content: initial !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: transparent !important;
+  border: none !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.pantalla-pista-tropical .modal-contenido .btn-pista-primario {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  min-width: 150px;
+  position: relative;
+  z-index: 5002;
+}
+
+.pantalla-pista-tropical .modal-contenido .btn-pista-primario:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+/* Standardize button alignment */
+.btn-pista-primario, .btn-pista-secundario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  margin: 10px auto;
+  box-sizing: border-box;
+}
+
+/* Ensure consistent container alignment */
+.flex-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
 }

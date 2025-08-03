@@ -49,7 +49,7 @@
   gap: 16px;
 }
 
-#perfil-img-preview {
+#perfil-img-preview, #perfil-img-display {
   width: 100px;
   height: 100px;
   border-radius: 50%;
@@ -85,9 +85,8 @@ input[type="text"], input[type="email"] {
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 15px 30px;
-  color: #ffffff;
-  width: 100%;
-  max-width: 400px;
+  color: #555555;
+  width: 350px;
   box-sizing: border-box;
   display: block;
   margin: 0 auto;
@@ -95,7 +94,52 @@ input[type="text"], input[type="email"] {
 }
 
 input[type="text"]::placeholder, input[type="email"]::placeholder {
-  color: #bbbbbb;
+  color: #555555; /* Color de placeholder gris oscuro para mejor visibilidad */
+}
+
+/* Estilos específicos para input del puzzle para que sea más blanquecino */
+#respuesta-puzzle1 {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  padding: 15px 30px;
+  color: #333333 !important;
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+#respuesta-puzzle1::placeholder {
+  color: #666666 !important;
+}
+
+/* Estilos específicos para el modal de visualización de perfil */
+.perfil-campo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(82, 82, 82, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.perfil-campo strong {
+  color: #555555;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.perfil-campo span {
+  color: #555555;
+  flex: 1;
+  text-align: right;
+  word-break: break-word;
 }
 
 /* Estilos para la tabla de ranking */
@@ -122,6 +166,78 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
 }
 
 #tabla-ranking tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== ESTILOS PARA RANKING CON BOTONES GLASS ===== */
+.ranking-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.ranking-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+  border: none;
+  white-space: nowrap;
+  max-width: 200px;
+  backdrop-filter: blur(6px) saturate(180%);
+  background: rgba(255, 255, 255, 0.1);
+  color: #3b3b3b;
+}
+
+.ranking-btn:hover {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.ranking-btn.active {
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  transform: translateY(-2px);
+  color: #e7fef6;
+}
+
+.ranking-table {
+  display: none;
+}
+
+.ranking-table.active {
+  display: block;
+}
+
+/* Estilos originales de tabla para ranking */
+.ranking-table table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.ranking-table th, .ranking-table td {
+  padding: 12px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  text-align: left;
+}
+
+.ranking-table th {
+  background-color: rgba(255, 255, 255, 0.15);
+  font-weight: 700;
+}
+
+.ranking-table tbody tr:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.ranking-table tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -153,7 +269,7 @@ body {
 }
 
 #pantalla-bienvenida, #pantalla-introduccion {
-  background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('../img/playa.webp');
+  background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('../img/playa.webp');
   background-size: cover;
   background-position: center;
 }
@@ -221,9 +337,34 @@ canvas {
 }
 
 #escena-playa {
+  background-color: #e0d7b7; /* Color de arena como respaldo mientras carga */
   background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('../img/botella.webp');
   background-size: cover;
   background-position: center;
+  transition: background-image 0.3s ease-in-out; /* Transición suave */
+}
+
+/* Clase inicial para escena playa mientras carga */
+#escena-playa.loading {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+  background-color: #e0d7b7;
+  opacity: 0.8; /* Ligeramente transparente mientras carga */
+}
+
+/* Clase cuando la imagen está completamente cargada */
+#escena-playa.loaded {
+  background-image: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url('../img/botella.webp');
+  opacity: 1; /* Completamente opaco cuando está cargado */
+  animation: fadeInBackground 0.5s ease-in-out; /* Animación suave de entrada */
+}
+
+@keyframes fadeInBackground {
+  from {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 #escena-playa .contenido h2 {
@@ -390,6 +531,13 @@ button:hover {
   overflow: auto;
 }
 
+/* Estilos específicos para modales de ranking con mayor blur y opacidad */
+#modal-ranking .modal-contenido {
+  background: rgba(255, 255, 255, 0.36);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+}
+
 .modal-contenido img {
   width: 60%;
   display: flex;
@@ -424,12 +572,74 @@ button:hover {
   margin-top: 16px;
 }
 
-#btn-guardar-perfil {
-  margin-top: 10px;
+/* Nuevos estilos para el perfil con vista y edición */
+.perfil-vista {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.perfil-info-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.form-grupo {
   width: 100%;
   max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.perfil-datos {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 400px;
+}
+
+.perfil-acciones {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+}
+
+#btn-editar-perfil, #btn-guardar-perfil {
+  margin-top: 10px;
+  width: 350px;
   padding: 12px 24px;
   box-sizing: border-box;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.4s ease;
+  box-shadow: 0 0 10px rgba(107, 107, 107, 0.5);
+  font-size: 16px;
+  border: none;
+  white-space: nowrap;
+  background: linear-gradient(45deg, #ff00f0, #00ffbf);
+  background-size: 200% 200%;
+  color: white;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#btn-editar-perfil:hover, #btn-guardar-perfil:hover {
+  background-position: 100% 100%;
+  transform: translateY(-2px);
+  color: #e7fef6;
 }
 
 .modal .cerrar {
@@ -495,7 +705,8 @@ button:hover {
 #score-container, #timer-container {
   position: fixed;
   top: 20px;
-  left: 40px;
+  left: 50%;
+  transform: translateX(-50%);
   background: linear-gradient(45deg, #ff00f0, #00ffbf);
   background-size: 200% 200%;
   animation: animated-gradient 3s ease-in-out infinite;
