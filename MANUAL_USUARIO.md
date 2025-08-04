@@ -106,11 +106,30 @@ Escape Room Web es un juego interactivo donde deberás resolver acertijos y supe
 - Para dudas, sugerencias o reportar errores, abre un issue en GitHub.
 - También puedes contactar al desarrollador desde el perfil de usuario.
 
-## 13. Glosario
-- **Modal**: Ventana emergente que muestra información o permite editar datos.
-- **Ranking**: Tabla de posiciones de los jugadores según tiempo y puntuación.
-- **Pista**: Ayuda opcional para resolver un reto.
-- **Avatar**: Imagen de perfil del usuario.
+
+## 14. Ejemplos visuales
+
+### Ejemplo de pantalla principal
+![Pantalla principal del juego](img/ejemplo_pantalla_principal.webp)
+
+### Ejemplo de modal de perfil
+![Modal de perfil de usuario](img/ejemplo_modal_perfil.webp)
+
+### Ejemplo de reto sudoku
+![Pantalla de sudoku](sudoku/img/codigo-sudoku.webp)
+
+### Ejemplo de ranking
+![Tabla de ranking](img/ejemplo_ranking.webp)
+
+*Si no ves las imágenes, verifica que los archivos existan en las rutas indicadas o consulta al administrador.*
+
+## 15. Instrucciones para administradores
+
+- Accede a la carpeta `admin/` para gestionar usuarios y configuraciones avanzadas.
+- Usa `admin/login.php` para iniciar sesión como administrador.
+- Puedes restablecer contraseñas de usuarios desde `admin/restablecer.php`.
+- Para cerrar sesión, utiliza `admin/logout.php`.
+- Revisa los logs y estadísticas para mejorar la experiencia de los jugadores.
 
 ---
 ¡Diviértete, reta a tus amigos y conviértete en el mejor escapista de la isla!

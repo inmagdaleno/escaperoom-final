@@ -136,13 +136,13 @@ body::before {
 .code-input.correct {
   background-color: rgba(255, 255, 255, 0.1);
   border: 6px solid transparent;
-  border-image: url('Final/img/oroPequeño.webp') 6 round;
-  background-image: url('Final/img/oroPequeño.webp');
+  border-image: url('img/oroPequeño.webp') 6 round;
   background-size: cover;
   background-position: center;
   color: #ffffff;
   font-weight: bold;
   box-sizing: border-box;
+  border-radius: 5px;
   animation: astrolabio-gold-shine 2.5s infinite alternate ease-in-out;
 }
 
@@ -372,7 +372,7 @@ body::before {
   height: 105px;
   margin-top: 2px;
   margin-left: 2px;
-  background-image: url('Final/img/oroPequeño.webp');
+  background-image: url('img/oroPequeño.webp');
   background-size: cover;
   border-radius: 50%;
   display: flex;
