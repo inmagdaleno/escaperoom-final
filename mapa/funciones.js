@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Estado del juego (debe ir antes de cualquier uso de gameMode)
+  let gameMode = localStorage.getItem('gameMode') || 'score';
+  let score = parseInt(localStorage.getItem('score')) || 400;
+  let draggedPiece = null;
+
+  // El timer global ya implementa applyPenalty, no es necesario redefinir penalización aquí
   // Elementos del DOM
   const escenaJungla = document.getElementById("escena-jungla");
   const escenaMapa = document.getElementById("escena-mapa");
@@ -9,10 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnVolverAtras = document.getElementById("btn-volver-atras");
   const btnVolverAtrasJungla = document.getElementById("btn-volver-atras-jungla");
   
-  // Estado del juego
-  let gameMode = localStorage.getItem('gameMode') || 'score';
-  let score = parseInt(localStorage.getItem('score')) || 400;
-  let draggedPiece = null;
+  // ...ya declarado arriba, eliminar duplicado...
 
   // Inicializar escenas
   if (escenaJungla && escenaMapa) {
@@ -281,8 +284,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 50);
       
       if (gameMode === 'score') {
-        score = Math.max(0, score - 5);
+        score = Math.max(0, score - 10);
         updateScore();
+        mostrarPenalizacion('-10 puntos');
+      } else if (gameMode === 'time') {
+        if (window.globalTimer && typeof window.globalTimer.applyPenalty === 'function') {
+          window.globalTimer.applyPenalty(10);
+        } else {
+          console.warn('No se puede aplicar penalización de tiempo: función applyPenalty no disponible en globalTimer.');
+        }
+        mostrarPenalizacion('-10 segundos');
       }
     }
   }
@@ -572,6 +583,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Modales y otros eventos
   
+  // Mostrar penalización temporal en pantalla
+  function mostrarPenalizacion(texto) {
+    let penalBox = document.getElementById('penalizacion-box');
+    if (penalBox) {
+      penalBox.innerHTML = `<span style="background:rgba(200,0,0,0.7);color:#fff;padding:12px 24px;border-radius:12px;font-size:1rem;font-weight:bold;box-shadow:0 2px 12px rgba(0,0,0,0.2);opacity:1;transition:opacity 0.3s;display:inline-block;">¡${texto}!</span>`;
+      setTimeout(() => {
+        penalBox.innerHTML = '';
+      }, 1200);
+    }
+  }
   // Funciones para manejar la visibilidad del botón examinar mapa
   function hideExaminarMapaButton() {
     const btnExaminar = document.getElementById('btn-examinar-mapa');

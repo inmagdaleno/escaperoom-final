@@ -271,16 +271,6 @@ ob_end_clean();
         </div>
       </section>
 
-
-      <!-- Pantalla Final -->
-      <section id="escena-final" class="pantalla">
-        <div class="contenido">
-          <h1>¡Felicidades!</h1>
-          <p>Has escapado de la Isla Efímera. Tu puntuación final es de <span id="score-final"></span> puntos.</p>
-          <button id="btn-reiniciar">Jugar de nuevo</button>
-        </div>
-      </section>
-
   <div id="game-over-overlay" class="oculto">
     <video id="game-over-video" src="video/isla.mp4" loop></video>
     <div class="game-over-content">

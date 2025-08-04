@@ -230,10 +230,29 @@ window.showGameOver = function() {
     overlay.classList.remove('oculto');
     overlay.style.display = 'flex';
   }
+  // Reproducir video solo tras interacción del usuario
   if (video) {
-    video.play();
+    // Intentar reproducir, pero si falla por falta de interacción, mostrar botón para reproducir
+    video.play().catch(() => {
+      // Crear botón para reproducir video si no existe
+      if (!document.getElementById('btn-play-video')) {
+        const btnPlay = document.createElement('button');
+        btnPlay.id = 'btn-play-video';
+        btnPlay.textContent = 'Ver animación';
+        btnPlay.className = 'btn-pista-primario btn-primary-gradient';
+        btnPlay.style.position = 'absolute';
+        btnPlay.style.top = '50%';
+        btnPlay.style.left = '50%';
+        btnPlay.style.transform = 'translate(-50%, -50%)';
+        btnPlay.style.zIndex = '4000';
+        overlay.appendChild(btnPlay);
+        btnPlay.addEventListener('click', () => {
+          video.play();
+          btnPlay.remove();
+        });
+      }
+    });
   }
-  
   // Guardar partida como fallida
   window.saveGameOverData();
 };
@@ -274,18 +293,25 @@ window.saveGameOverData = function() {
   
   console.log('Guardando partida fallida con datos:', gameData);
   
-  // Enviar datos al servidor
-  fetch('controller/guardarPartida.php', {
+  // Enviar datos al servidor (ruta relativa corregida)
+  fetch('../controller/guardarPartida.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(gameData),
   })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      console.log('Partida fallida guardada exitosamente en la base de datos');
+  .then(async response => {
+    // Verificar si la respuesta es JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      if (data.success) {
+        console.log('Partida fallida guardada exitosamente en la base de datos');
+      } else {
+        console.error('Error al guardar partida fallida:', data.mensaje);
+      }
     } else {
-      console.error('Error al guardar partida fallida:', data.mensaje);
+      const text = await response.text();
+      console.error('Respuesta inesperada al guardar partida:', text);
     }
   })
   .catch((error) => {

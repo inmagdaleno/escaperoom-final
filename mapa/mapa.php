@@ -42,6 +42,8 @@ if (!isset($_SESSION['usuario_id'])) {
     <button id="btn-cerrar-sesion" class="btn-icono-esquina" title="Cerrar Sesión">
       <i class="fas fa-sign-out-alt"></i>
     </button>
+    <!-- Mensaje de penalización -->
+    <div id="penalizacion-box" style="width:100%;display:flex;justify-content:center;pointer-events:none;position:absolute;top:80px;left:0;"></div>
   </div>
 
   <!-- Escena Jungla - Pantalla previa al mapa -->
@@ -85,7 +87,7 @@ if (!isset($_SESSION['usuario_id'])) {
     </div>
 
     <h1 id="main-title">El mapa de los Secretos</h1>
-    <p id="subtitle">Reconstruye el mapa arrastrando las piezas hasta el tablero. Una vez completado, <br> importantes secretos de esta isla serán desvelados</p>
+    <p id="subtitle">Reconstruye el mapa arrastrando las piezas hasta el tablero. Una vez completado, importantes secretos de esta isla serán desvelados. ¡Pero cuidado! Cada pieza colocada en un lugar erróneo supondrá una penalización.</p>
 
     <div class="puzzle-wrapper">
       <div id="pieces" class="pieces-container"></div>

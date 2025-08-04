@@ -635,6 +635,14 @@ fetch('../controller/guardarPartida.php', {
     });
   }
 
+  // Botón Salir en el modal de Game Over
+  const btnExit = document.getElementById('btn-exit');
+  if (btnExit) {
+    btnExit.addEventListener('click', function() {
+      window.location.href = '../admin/logout.php';
+    });
+  }
+
   window.addEventListener('click', (e) => {
       if (e.target === modalPerfil) closeOverlayModal(modalPerfil);
       if (e.target === modalRanking) closeOverlayModal(modalRanking);

@@ -926,53 +926,6 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
     color: #ff00f0;
 }
 
-.continue-button {
-    background: linear-gradient(45deg, #ff00f0, #00ffbf);
-    background-size: 200% 200%;
-    padding: 15px 30px;
-    font-size: 18px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    margin-top: 10px;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.4s ease;
-}
-
-.continue-button:hover {
-    background-position: 100% 100%;
-    transform: translateY(-2px);
-    color: #e7fef6;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
-.continue-button {
-    background: linear-gradient(45deg, #ff00f0, #00ffbf);
-    background-size: 200% 200%;
-    padding: 15px 30px;
-    font-size: 18px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    margin-top: 10px;
-    border: none;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.4s ease;
-}
-
-.continue-button:hover {
-    background-position: 100% 100%;
-    transform: translateY(-2px);
-    color: #e7fef6;
-}
-
-.continue-button:hover {
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-}
-
 /* Estilos para game over overlay */
 .oculto {
   display: none !important;
@@ -1011,7 +964,12 @@ input[type="text"]::placeholder, input[type="email"]::placeholder {
   text-align: center;
   color: white;
   z-index: 2;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 8px 32px 0 rgba(15, 18, 61, 0.37);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   padding: 3rem;
   border-radius: 15px;
   backdrop-filter: blur(10px);

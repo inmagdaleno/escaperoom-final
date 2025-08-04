@@ -1,3 +1,4 @@
+
 /* Estilos globales de texto consistentes con juego.php */
 h2 {
   font-family: "Barriecito", system-ui;
@@ -1395,4 +1396,3 @@ body.transitioning::before {
 .ranking-table tbody tr:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
-
