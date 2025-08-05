@@ -3,7 +3,7 @@
 
 ¡Bienvenido al proyecto Escape Room Web!
 
-Este repositorio contiene el código fuente de un juego de escape room interactivo y educativo, desarrollado en PHP, JavaScript y CSS, con integración de base de datos MySQL y gestión avanzada de usuarios. El objetivo es resolver acertijos y retos para escapar de la isla, compitiendo por el mejor tiempo y puntuación.
+Este repositorio contiene el código fuente de un juego de escape room interactivo y educativo, desarrollado en PHP, JavaScript y CSS, con integración de base de datos MySQL y gestión avanzada de usuarios. El objetivo es resolver acertijos y retos para escapar de la isla Efímera antes de que anochezca y la isla desaparezca, compitiendo por el mejor tiempo y puntuación.
 
 ---
 
@@ -99,7 +99,7 @@ Este repositorio contiene el código fuente de un juego de escape room interacti
 - Para soporte directo, contacta al desarrollador en el email del perfil
 
 ## Créditos
-- Desarrollado por [Tu Nombre]
+- Desarrollado por Inma Magdaleno
 - Librerías: PHPMailer
 - Imágenes, audio y video: recursos propios y libres de derechos
 
