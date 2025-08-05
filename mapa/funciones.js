@@ -582,6 +582,52 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Modales y otros eventos
+  // --- Pista Extra Modal ---
+  const btnPistaExtra = document.getElementById('btn-pista-extra');
+  const modalPista = document.getElementById('modal-pista');
+  const cerrarModalPista = document.getElementById('cerrar-modal-pista');
+  const pistaExplicacion = document.getElementById('pista-explicacion');
+  const feedbackPista = document.getElementById('feedback-pista');
+  const btnConfirmarPista = document.getElementById('btn-confirmar-pista');
+  const btnDescartarPista = document.getElementById('btn-descartar-pista');
+
+  // Explicación y penalización (puedes personalizar el texto)
+  if (pistaExplicacion) {
+    pistaExplicacion.textContent = 'La pista extra te mostrará una ayuda visual para resolver el mapa, pero recibirás una penalización de 15 segundos (contrarreloj) o perderás 10 puntos (puntuación). ¿Quieres continuar?';
+  }
+  if (feedbackPista) {
+    feedbackPista.textContent = '';
+  }
+
+  if (btnPistaExtra && modalPista) {
+    btnPistaExtra.addEventListener('click', () => {
+      modalPista.style.display = 'flex';
+    });
+  }
+  if (cerrarModalPista && modalPista) {
+    cerrarModalPista.addEventListener('click', () => {
+      modalPista.style.display = 'none';
+    });
+  }
+  if (btnDescartarPista && modalPista) {
+    btnDescartarPista.addEventListener('click', () => {
+      modalPista.style.display = 'none';
+    });
+  }
+  // El botón de confirmar pista abrirá el modal visual (pantalla-pista-extra-mapa)
+  const pantallaPistaExtraMapa = document.getElementById('pantalla-pista-extra-mapa');
+  const btnContinuarMapaPista = document.getElementById('btn-continuar-mapa-pista');
+  if (btnConfirmarPista && pantallaPistaExtraMapa && modalPista) {
+    btnConfirmarPista.addEventListener('click', () => {
+      modalPista.style.display = 'none';
+      pantallaPistaExtraMapa.style.display = 'flex';
+    });
+  }
+  if (btnContinuarMapaPista && pantallaPistaExtraMapa) {
+    btnContinuarMapaPista.addEventListener('click', () => {
+      pantallaPistaExtraMapa.style.display = 'none';
+    });
+  }
   
   // Mostrar penalización temporal en pantalla
   function mostrarPenalizacion(texto) {

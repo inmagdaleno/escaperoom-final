@@ -562,7 +562,7 @@
         btnIrAdelante.addEventListener("click", () => {
             // Simular la animación dorada primero
             const inputs = ['primero', 'segundo', 'tercero', 'cuarto', 'quinto', 'sexto'];
-            const correctAnswers = ["10", "25", "26", "17", "5", "32"];
+            const correctAnswers = ["24", "2", "13", "1", "25", "20"];
             
             // Llenar los inputs con los valores correctos
             inputs.forEach((id, index) => {
@@ -707,17 +707,6 @@
             // Fallar silenciosamente para no interrumpir la experiencia del usuario
         });
     }
-
-    // Ejemplo de cómo llamar a enviarPartida cuando el usuario termina la partida:
-    // const gameData = {
-    //     id_prueba: 3,
-    //     modo_juego: 'puntos', // o 'tiempo'
-    //     pistas_usadas: 2,
-    //     resultado: 1, // 1 para éxito, 0 para fallo
-    //     puntuacion_final: 100, // si modo_juego es 'puntos'
-    //     tiempo_restante_final: null // si modo_juego es 'tiempo'
-    // };
-    // enviarPartida(gameData);
 
     // Funcionalidad de los discos (existente)
     const obtenerValorDisco3 = (angulo) => {
@@ -889,12 +878,12 @@
 
     botonComprobar.addEventListener('click', () => {
         const correctAnswers = {
-            primero: "10",
-            segundo: "25",
-            tercero: "26",
-            cuarto: "17",
-            quinto: "5",
-            sexto: "32"
+            primero: "24",
+            segundo: "2",
+            tercero: "13",
+            cuarto: "1",
+            quinto: "25",
+            sexto: "20"
         };
 
         const userAnswers = {
@@ -1022,12 +1011,15 @@
     });
 
     botonObtenerCoordenadas.addEventListener('click', () => {
-        const valorDisco3 = obtenerValorDisco3(angulos.disco3);
-        const valorDisco2 = obtenerValorDisco2(angulos.disco2);
+        // Usar las funciones ya definidas para obtener el valor más cercano
         const valorDisco1 = obtenerValorDisco1(angulos.disco1);
+        const valorDisco2 = obtenerValorDisco2(angulos.disco2);
+        const valorDisco3 = obtenerValorDisco3(angulos.disco3);
         const valorTotal = valorDisco1 + valorDisco2 + valorDisco3;
-        valorDisplay.textContent = valorTotal;
-        valorDisplay.style.visibility = 'visible';
+        if (valorDisplay) {
+            valorDisplay.textContent = valorTotal;
+            valorDisplay.style.visibility = 'visible';
+        }
     });
 
     // --- MANEJO DE PERFIL ---
