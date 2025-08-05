@@ -10,7 +10,7 @@ El sistema está basado en una arquitectura web cliente-servidor:
 ## 2. Diagrama de la base de datos
 La base de datos principal incluye las siguientes tablas:
 - **usuarios**: id, nombre, email, password, fecha_registro
-- **partidas**: id, id_usuario, modo_juego, puntuacion_final, tiempo_empleado, pistas_usadas, resultado, fecha
+- **partidas**: id, id_usuario, modo_juego, puntuacion_final, tiempo_empleado, pistas_usadas, resultado, fecha.
 - **ranking**: id, id_usuario, valor, tipo (score/time)
 - **otros**: tablas auxiliares para pistas, logs, etc.
 
