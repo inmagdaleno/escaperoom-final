@@ -136,7 +136,7 @@ body::before {
 .code-input.correct {
   background-color: rgba(255, 255, 255, 0.1);
   border: 6px solid transparent;
-  border-image: url('img/oroPequeño.webp') 6 round;
+  border-image: url('img/oro.webp') 6 round;
   background-size: cover;
   background-position: center;
   color: #ffffff;
